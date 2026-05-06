@@ -20,7 +20,7 @@ construir_red(
 \arguments{
 \item{desregulated_list}{Data.frame con genes, log2FC y p-valor.}
 
-\item{org_info}{Lista de información del organismo (de \code{ORGANISMS}).}
+\item{org_info}{Lista de informacion del organismo (de \code{ORGANISMS}).}
 
 \item{gene_col}{Columna con Gene Symbols.}
 
@@ -28,15 +28,15 @@ construir_red(
 
 \item{pval_col}{Columna con p-valor (-log10).}
 
-\item{score_threshold}{Score mínimo STRING (0-1000). Default 400.}
+\item{score_threshold}{Score minimo STRING (0-1000). Default 400.}
 
-\item{cache_dir}{Carpeta de caché para el interactoma. NULL = sin caché.}
+\item{cache_dir}{Carpeta de cache para el interactoma. NULL = sin cache.}
 
-\item{w}{Parámetro omega de PCSF. Default 0.85.}
+\item{w}{Parametro omega de PCSF. Default 0.85.}
 
-\item{b}{Parámetro beta de PCSF. Default 1.}
+\item{b}{Parametro beta de PCSF. Default 1.}
 
-\item{mu}{Parámetro mu de PCSF. Default 0.00005.}
+\item{mu}{Parametro mu de PCSF. Default 0.00005.}
 }
 \value{
 Lista con \code{subnet}, \code{cluster_means}, \code{gene_scores}.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/pipeline.R
 \name{iPCSF}
 \alias{iPCSF}
-\title{Análisis PCSF completo con interactoma automático}
+\title{Analisis PCSF completo con interactoma automatico}
 \usage{
 iPCSF(
   conditions,
@@ -22,8 +22,8 @@ iPCSF(
 \item{conditions}{Lista nombrada de condiciones. Cada elemento debe contener:
 \itemize{
 \item \code{data} Data.frame con los genes desregulados (obligatorio)
-\item \code{label} Etiqueta para mostrar en el HTML (opcional, default = nombre de la condición)
-\item \code{color} Color hex para la condición (opcional, default = "#377EB8")
+\item \code{label} Etiqueta para mostrar en el HTML (opcional, default = nombre de la condicion)
+\item \code{color} Color hex para la condicion (opcional, default = "#377EB8")
 }}
 
 \item{org}{Organismo. Ej: "rat", "human", "mouse". Ver \code{ORGANISMS}.}
@@ -34,28 +34,28 @@ iPCSF(
 
 \item{pval_col}{Nombre de la columna con p-valor (-log10). Default \code{"pvalue"}.}
 
-\item{score_threshold}{Score mínimo STRING (0-1000). Default 400.}
+\item{score_threshold}{Score minimo STRING (0-1000). Default 400.}
 
-\item{cache_dir}{Carpeta para cachear el interactoma descargado. \code{NULL} = sin caché.}
+\item{cache_dir}{Carpeta para cachear el interactoma descargado. \code{NULL} = sin cache.}
 
 \item{output_file}{Nombre del archivo HTML generado. Default \code{"iPCSF_network.html"}.}
 
-\item{w}{Parámetro omega de PCSF. Default 0.85.}
+\item{w}{Parametro omega de PCSF. Default 0.85.}
 
-\item{b}{Parámetro beta de PCSF. Default 1.}
+\item{b}{Parametro beta de PCSF. Default 1.}
 
-\item{mu}{Parámetro mu de PCSF. Default 0.00005.}
+\item{mu}{Parametro mu de PCSF. Default 0.00005.}
 }
 \value{
-Lista invisible con \code{resultados} (lista por condición),
+Lista invisible con \code{resultados} (lista por condicion),
 \code{html} (ruta al HTML) y \code{org} (info del organismo).
 }
 \description{
-Análisis PCSF completo con interactoma automático
+Analisis PCSF completo con interactoma automatico
 }
 \examples{
 \dontrun{
-# Ejemplo con una condición
+# Ejemplo con una condicion
 iPCSF(
   conditions = list(
     case1 = list(data = df_case1, label = "Treatment A", color = "#E41A1C")

@@ -2,11 +2,11 @@
 % Please edit documentation in R/enrichment.R
 \name{cargar_orgdb}
 \alias{cargar_orgdb}
-\title{Carga el OrgDb del organismo, instalándolo si es necesario}
+\title{Carga el OrgDb del organismo, instalandolo si es necesario}
 \usage{
 cargar_orgdb(org_info)
 }
 \description{
-Carga el OrgDb del organismo, instalándolo si es necesario
+Carga el OrgDb del organismo, instalandolo si es necesario
 }
 \keyword{internal}

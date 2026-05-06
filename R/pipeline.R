@@ -1,37 +1,36 @@
 # ============================================
-# FUNCIÓN PRINCIPAL iPCSF
+# FUNCIoN PRINCIPAL iPCSF
 # ============================================
 
-#' Operador null-coalesce interno
-#' @keywords internal
+# Null-coalesce operator (internal)
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
-#' Análisis PCSF completo con interactoma automático
+#' Analisis PCSF completo con interactoma automatico
 #'
 #' @param conditions Lista nombrada de condiciones. Cada elemento debe contener:
 #'   \itemize{
 #'     \item \code{data} Data.frame con los genes desregulados (obligatorio)
-#'     \item \code{label} Etiqueta para mostrar en el HTML (opcional, default = nombre de la condición)
-#'     \item \code{color} Color hex para la condición (opcional, default = "#377EB8")
+#'     \item \code{label} Etiqueta para mostrar en el HTML (opcional, default = nombre de la condicion)
+#'     \item \code{color} Color hex para la condicion (opcional, default = "#377EB8")
 #'   }
 #' @param org Organismo. Ej: "rat", "human", "mouse". Ver \code{ORGANISMS}.
 #' @param gene_col Nombre de la columna con Gene Symbols. Default \code{"gene"}.
 #' @param log2fc_col Nombre de la columna con log2 fold-change. Default \code{"log2FC"}.
 #' @param pval_col Nombre de la columna con p-valor (-log10). Default \code{"pvalue"}.
-#' @param score_threshold Score mínimo STRING (0-1000). Default 400.
-#' @param cache_dir Carpeta para cachear el interactoma descargado. \code{NULL} = sin caché.
+#' @param score_threshold Score minimo STRING (0-1000). Default 400.
+#' @param cache_dir Carpeta para cachear el interactoma descargado. \code{NULL} = sin cache.
 #' @param output_file Nombre del archivo HTML generado. Default \code{"iPCSF_network.html"}.
-#' @param w Parámetro omega de PCSF. Default 0.85.
-#' @param b Parámetro beta de PCSF. Default 1.
-#' @param mu Parámetro mu de PCSF. Default 0.00005.
+#' @param w Parametro omega de PCSF. Default 0.85.
+#' @param b Parametro beta de PCSF. Default 1.
+#' @param mu Parametro mu de PCSF. Default 0.00005.
 #'
-#' @return Lista invisible con \code{resultados} (lista por condición),
+#' @return Lista invisible con \code{resultados} (lista por condicion),
 #'   \code{html} (ruta al HTML) y \code{org} (info del organismo).
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Ejemplo con una condición
+#' # Ejemplo con una condicion
 #' iPCSF(
 #'   conditions = list(
 #'     case1 = list(data = df_case1, label = "Treatment A", color = "#E41A1C")
@@ -69,7 +68,6 @@ iPCSF <- function(conditions,
                   b  = 1,
                   mu = 0.00005) {
 
-  # ── Validar organismo ──────────────────────────────────────────
   org_info <- ORGANISMS[[org]]
   if (is.null(org_info)) {
     stop(
@@ -78,7 +76,6 @@ iPCSF <- function(conditions,
     )
   }
 
-  # ── Validar conditions ─────────────────────────────────────────
   if (!is.list(conditions) || is.null(names(conditions)) ||
       any(names(conditions) == "")) {
     stop(
@@ -92,8 +89,8 @@ iPCSF <- function(conditions,
   }
 
   message("\n========================================")
-  message("  iPCSF — ", org_info$nombre)
-  message("  ", length(conditions), " condición(es): ",
+  message("  iPCSF -- ", org_info$nombre)
+  message("  ", length(conditions), " condicion(es): ",
           paste(names(conditions), collapse = ", "))
   message("========================================\n")
 
@@ -106,14 +103,14 @@ iPCSF <- function(conditions,
 
     # Validar campo data
     if (is.null(cond$data) || !is.data.frame(cond$data)) {
-      stop("Condición '", cond_id, "': el campo 'data' debe ser un data.frame.")
+      stop("Condicion '", cond_id, "': el campo 'data' debe ser un data.frame.")
     }
 
     # Validar columnas
     for (col in c(gene_col, log2fc_col, pval_col)) {
       if (!col %in% colnames(cond$data)) {
         stop(
-          "Condición '", cond_id, "': columna '", col, "' no encontrada.\n",
+          "Condicion '", cond_id, "': columna '", col, "' no encontrada.\n",
           "Columnas disponibles: ", paste(colnames(cond$data), collapse = ", ")
         )
       }
@@ -138,12 +135,12 @@ iPCSF <- function(conditions,
     )
 
     if (is.null(res)) {
-      message("  [", cond_id, "] Omitiendo condición por error.")
+      message("  [", cond_id, "] Omitiendo condicion por error.")
       resultados[[cond_id]] <- NULL
       next
     }
 
-    # Metadatos de la condición
+    # Metadatos de la condicion
     res$label <- cond$label %||% cond_id
     res$color <- cond$color %||% "#377EB8"
 
@@ -159,19 +156,19 @@ iPCSF <- function(conditions,
     )
 
     resultados[[cond_id]] <- res
-    message("[", cond_id, "] OK — ",
+    message("[", cond_id, "] OK -- ",
             igraph::vcount(res$subnet), " nodos, ",
             length(unique(igraph::V(res$subnet)$cluster)), " clusters\n")
   }
 
-  # Verificar que al menos una condición tuvo éxito
+  # Verificar que al menos una condicion tuvo exito
   validos <- Filter(Negate(is.null), resultados)
   if (length(validos) == 0) {
-    stop("Ninguna condición produjo resultados. Revisa los datos de entrada.")
+    stop("Ninguna condicion produjo resultados. Revisa los datos de entrada.")
   }
 
   # Generar HTML
-  message("[iPCSF] Generando visualización HTML...")
+  message("[iPCSF] Generando visualizacion HTML...")
   generar_html(
     resultados  = resultados,
     output_file = output_file,
@@ -187,3 +184,9 @@ iPCSF <- function(conditions,
     org        = org_info
   )))
 }
+
+
+#' @importFrom grDevices rainbow
+#' @importFrom stats complete.cases na.omit setNames
+#' @importFrom utils head
+NULL

@@ -2,7 +2,7 @@
 # ENRIQUECIMIENTO FUNCIONAL (GO + KEGG)
 # ============================================
 
-#' Carga el OrgDb del organismo, instalándolo si es necesario
+#' Carga el OrgDb del organismo, instalandolo si es necesario
 #' @keywords internal
 cargar_orgdb <- function(org_info) {
   pkg <- org_info$orgdb
@@ -16,7 +16,7 @@ cargar_orgdb <- function(org_info) {
 #' Enriquecimiento KEGG para un cluster
 #' @keywords internal
 get_kegg_summary <- function(genes, org_info, top_n = 3) {
-  if (length(genes) < 3) return("Cluster pequeño para KEGG")
+  if (length(genes) < 3) return("Cluster pequeno para KEGG")
 
   tryCatch({
     orgdb    <- cargar_orgdb(org_info)
@@ -48,7 +48,7 @@ get_kegg_summary <- function(genes, org_info, top_n = 3) {
 #' Enriquecimiento GO para un cluster
 #' @keywords internal
 get_go_summary <- function(genes, org_info, top_n = 2) {
-  if (length(genes) < 3) return("Cluster pequeño para GO")
+  if (length(genes) < 3) return("Cluster pequeno para GO")
 
   orgdb    <- cargar_orgdb(org_info)
   keytype  <- if (org_info$keytype %in% c("ORF", "TAIR")) org_info$keytype else "SYMBOL"
@@ -101,7 +101,7 @@ aplicar_enriquecimiento <- function(resultado, org_info) {
         "<div style='max-width:340px;padding:14px;background:#fff;color:#333;",
         "border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.25);'>",
         "<h4 style='margin:0 0 8px 0;color:#2E4057;border-bottom:2px solid #eee;",
-        "padding-bottom:6px;'>Rank ", rank_pos, " — Cluster ", cluster_id, "</h4>",
+        "padding-bottom:6px;'>Rank ", rank_pos, " -- Cluster ", cluster_id, "</h4>",
         "<p style='margin:0 0 8px 0;color:#666;font-size:11px;'>",
         "|log2FC| medio: <b>", mean_val, "</b></p>",
         "<b>Genes (", length(genes_cluster), "):</b><br>",
@@ -113,7 +113,7 @@ aplicar_enriquecimiento <- function(resultado, org_info) {
         "<div style='padding:10px;background:#fff;border-radius:8px;'>",
         "<h4 style='color:#666;'>Cluster ", cluster_id, "</h4>",
         "<b>Genes:</b> ", paste(genes_cluster, collapse = ", "),
-        "<br><i style='color:#999;'>Cluster pequeño</i></div>"
+        "<br><i style='color:#999;'>Cluster pequeno</i></div>"
       )
     }
 

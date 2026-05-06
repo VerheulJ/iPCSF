@@ -1,19 +1,19 @@
 # ============================================
-# CONSTRUCCIÓN Y PROCESADO DE LA RED PCSF
+# CONSTRUCCION Y PROCESADO DE LA RED PCSF
 # ============================================
 
 #' Construye la subred PCSF a partir de una lista de genes desregulados
 #'
 #' @param desregulated_list Data.frame con genes, log2FC y p-valor.
-#' @param org_info Lista de información del organismo (de \code{ORGANISMS}).
+#' @param org_info Lista de informacion del organismo (de \code{ORGANISMS}).
 #' @param gene_col Columna con Gene Symbols.
 #' @param log2fc_col Columna con log2 fold-change.
 #' @param pval_col Columna con p-valor (-log10).
-#' @param score_threshold Score mínimo STRING (0-1000). Default 400.
-#' @param cache_dir Carpeta de caché para el interactoma. NULL = sin caché.
-#' @param w Parámetro omega de PCSF. Default 0.85.
-#' @param b Parámetro beta de PCSF. Default 1.
-#' @param mu Parámetro mu de PCSF. Default 0.00005.
+#' @param score_threshold Score minimo STRING (0-1000). Default 400.
+#' @param cache_dir Carpeta de cache para el interactoma. NULL = sin cache.
+#' @param w Parametro omega de PCSF. Default 0.85.
+#' @param b Parametro beta de PCSF. Default 1.
+#' @param mu Parametro mu de PCSF. Default 0.00005.
 #'
 #' @return Lista con \code{subnet}, \code{cluster_means}, \code{gene_scores}.
 #' @keywords internal
@@ -30,7 +30,7 @@ construir_red <- function(desregulated_list,
 
   df <- desregulated_list
 
-  # ── 1. Limpiar duplicados (misma lógica que tu script original) ──
+  # ── 1. Limpiar duplicados (misma logica que tu script original) ──
   if (gene_col %in% colnames(df)) {
     df <- df[!duplicated(df[[gene_col]]), ]
     df <- df[!is.na(df[[gene_col]]) & df[[gene_col]] != "", ]
@@ -48,7 +48,7 @@ construir_red <- function(desregulated_list,
   message("  Genes terminals : ", length(terminals))
 
   if (length(terminals) < 3) {
-    stop("Se necesitan al menos 3 genes válidos. ",
+    stop("Se necesitan al menos 3 genes validos. ",
          "Revisa las columnas '", pval_col, "' y '", gene_col, "'.")
   }
 
@@ -79,7 +79,7 @@ construir_red <- function(desregulated_list,
     stop(
       "Menos de 3 genes encontrados en STRING.\n",
       "Sugerencias:\n",
-      "  - Verifica que los nombres de genes son Gene Symbols válidos\n",
+      "  - Verifica que los nombres de genes son Gene Symbols validos\n",
       "  - Prueba a bajar score_threshold (actual: ", score_threshold, ")\n",
       "  - Comprueba que el organismo es correcto: ", org_info$nombre
     )
@@ -96,7 +96,7 @@ construir_red <- function(desregulated_list,
   if (igraph::vcount(subnet) < 2) {
     stop(
       "La subred resultante tiene menos de 2 nodos.\n",
-      "Prueba a ajustar los parámetros w, b o mu."
+      "Prueba a ajustar los parametros w, b o mu."
     )
   }
 
@@ -114,7 +114,7 @@ construir_red <- function(desregulated_list,
     terminals[igraph::V(subnet)$name], 0
   )
 
-  # Status de regulación — genérico: busca columna "Status" si existe
+  # Status de regulacion — generico: busca columna "Status" si existe
   if ("Status" %in% colnames(df)) {
     status_map <- setNames(as.character(df$Status), df[[gene_col]])
     igraph::V(subnet)$status <- ifelse(
@@ -156,3 +156,9 @@ construir_red <- function(desregulated_list,
     gene_scores   = gene_scores
   ))
 }
+
+
+#' @importFrom grDevices rainbow
+#' @importFrom stats complete.cases na.omit setNames
+#' @importFrom utils head
+NULL

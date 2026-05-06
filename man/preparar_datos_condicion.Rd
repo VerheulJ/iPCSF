@@ -2,11 +2,11 @@
 % Please edit documentation in R/visualization.R
 \name{preparar_datos_condicion}
 \alias{preparar_datos_condicion}
-\title{Prepara los datos de una condición para JSON}
+\title{Prepara los datos de una condicion para JSON}
 \usage{
 preparar_datos_condicion(resultado)
 }
 \description{
-Prepara los datos de una condición para JSON
+Prepara los datos de una condicion para JSON
 }
 \keyword{internal}

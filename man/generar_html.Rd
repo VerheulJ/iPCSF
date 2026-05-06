@@ -11,13 +11,13 @@ generar_html(
 )
 }
 \arguments{
-\item{resultados}{Lista nombrada de resultados (una entrada por condición).
+\item{resultados}{Lista nombrada de resultados (una entrada por condicion).
 Cada elemento debe ser la salida de \code{construir_red()} + \code{aplicar_enriquecimiento()},
 con campos adicionales \code{label} y \code{color}.}
 
 \item{output_file}{Ruta del archivo HTML de salida.}
 
-\item{titulo}{Título que aparece en el header del HTML.}
+\item{titulo}{Titulo que aparece en el header del HTML.}
 }
 \value{
 Ruta del archivo HTML generado (invisible).

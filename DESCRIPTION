@@ -18,7 +18,6 @@ biocViews: NetworkAnalysis, Proteomics, GeneOntology, KEGG, MultipleComparison
 Imports:
     PCSF,
     igraph,
-    dplyr,
     jsonlite,
     httr,
     clusterProfiler,

@@ -1,5 +1,5 @@
 # ============================================
-# VISUALIZACIÓN — generar_html()
+# VISUALIZACIoN -- generar_html()
 # ============================================
 
 #' Genera paleta de colores para los clusters
@@ -15,7 +15,7 @@ generar_paleta_clusters <- function(n_clusters) {
   c(colores_base, rainbow(n_clusters - length(colores_base), s = 0.7, v = 0.9))
 }
 
-#' Prepara los datos de una condición para JSON
+#' Prepara los datos de una condicion para JSON
 #' @keywords internal
 preparar_datos_condicion <- function(resultado) {
 
@@ -35,13 +35,13 @@ preparar_datos_condicion <- function(resultado) {
   layout_coords[,1] <- (layout_coords[,1] - min(layout_coords[,1])) / rango_x * 3000 + 100
   layout_coords[,2] <- (layout_coords[,2] - min(layout_coords[,2])) / rango_y * 2500 + 100
 
-  # Tamaños
+  # Tamanos
   prize <- abs(igraph::V(subnet)$original_prize)
   sizes <- if (max(prize) > min(prize)) {
     ((prize - min(prize)) / (max(prize) - min(prize))) * 50 + 15
   } else rep(20, length(prize))
 
-  # Bordes según regulación
+  # Bordes segun regulacion
   border_colors <- sapply(igraph::V(subnet)$status, function(s) {
     if (is.na(s) || s %in% c("Steiner", "unknown")) "#888888"
     else if (grepl("up",   s, ignore.case = TRUE))   "#FF0000"
@@ -112,11 +112,11 @@ preparar_datos_condicion <- function(resultado) {
 
 #' Genera el HTML interactivo con la red iPCSF
 #'
-#' @param resultados Lista nombrada de resultados (una entrada por condición).
+#' @param resultados Lista nombrada de resultados (una entrada por condicion).
 #'   Cada elemento debe ser la salida de \code{construir_red()} + \code{aplicar_enriquecimiento()},
 #'   con campos adicionales \code{label} y \code{color}.
 #' @param output_file Ruta del archivo HTML de salida.
-#' @param titulo Título que aparece en el header del HTML.
+#' @param titulo Titulo que aparece en el header del HTML.
 #'
 #' @return Ruta del archivo HTML generado (invisible).
 #' @export
@@ -126,9 +126,9 @@ generar_html <- function(resultados,
 
   # Filtrar condiciones con datos
   validos <- Filter(Negate(is.null), resultados)
-  if (length(validos) == 0) stop("No hay resultados válidos para visualizar.")
+  if (length(validos) == 0) stop("No hay resultados validos para visualizar.")
 
-  # Preparar datos JSON para cada condición
+  # Preparar datos JSON para cada condicion
   datos_completos <- list()
   for (cond_id in names(validos)) {
     datos_completos[[cond_id]] <- preparar_datos_condicion(validos[[cond_id]])
@@ -149,7 +149,7 @@ generar_html <- function(resultados,
   })
   meta_json <- jsonlite::toJSON(meta_condiciones, auto_unbox = TRUE)
 
-  # Primera condición activa por defecto
+  # Primera condicion activa por defecto
   primera_condicion <- names(validos)[1]
 
   html <- paste0(
@@ -182,7 +182,7 @@ generar_html <- function(resultados,
            color:var(--accent);padding:4px 12px;border-radius:20px;
            font-size:0.72em;font-family:"IBM Plex Mono",monospace}
 
-    /* Controls — generados dinámicamente */
+    /* Controls -- generados dinamicamente */
     .controls{padding:10px 28px;border-bottom:1px solid var(--border);
               display:flex;align-items:center;gap:10px;flex-wrap:wrap;
               background:var(--surface)}
@@ -259,23 +259,23 @@ generar_html <- function(resultados,
   <div class="badge">iPCSF v0.0.1</div>
 </div>
 
-<!-- Botones generados dinámicamente desde R -->
+<!-- Botones generados dinamicamente desde R -->
 <div class="controls" id="controls">
   <span class="ctrl-label">Condition</span>
 </div>
 
 <div class="stats">
-  <div class="stat"><div class="stat-val" id="s-nodos">—</div><div class="stat-lbl">Nodes</div></div>
-  <div class="stat"><div class="stat-val" id="s-edges">—</div><div class="stat-lbl">Edges</div></div>
-  <div class="stat"><div class="stat-val" id="s-clusters">—</div><div class="stat-lbl">Clusters</div></div>
-  <div class="stat"><div class="stat-val" id="s-terminals">—</div><div class="stat-lbl">Terminals</div></div>
+  <div class="stat"><div class="stat-val" id="s-nodos">--</div><div class="stat-lbl">Nodes</div></div>
+  <div class="stat"><div class="stat-val" id="s-edges">--</div><div class="stat-lbl">Edges</div></div>
+  <div class="stat"><div class="stat-val" id="s-clusters">--</div><div class="stat-lbl">Clusters</div></div>
+  <div class="stat"><div class="stat-val" id="s-terminals">--</div><div class="stat-lbl">Terminals</div></div>
 </div>
 
 <div class="workspace">
   <div id="network-wrap"><div id="network"></div></div>
   <div class="sidebar">
     <div class="sidebar-section">
-      <div class="sidebar-title">Clusters — ranked by |log2FC|</div>
+      <div class="sidebar-title">Clusters -- ranked by |log2FC|</div>
     </div>
     <div class="cluster-scroll" id="cluster-list"></div>
     <div class="sidebar-section">
@@ -304,7 +304,7 @@ let activeCond = "', primera_condicion, '";
 let net = null;
 let selCluster = null;
 
-// Generar botones dinámicamente desde META
+// Generar botones dinamicamente desde META
 const controls = document.getElementById("controls");
 META.forEach(m => {
   const btn = document.createElement("button");
@@ -436,3 +436,9 @@ render();
           " (", round(nchar(html) / 1024, 1), " KB)")
   return(invisible(output_file))
 }
+
+
+#' @importFrom grDevices rainbow
+#' @importFrom stats complete.cases na.omit setNames
+#' @importFrom utils head
+NULL

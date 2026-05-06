@@ -6,8 +6,8 @@
 #'
 #' @param genes Vector de Gene Symbols.
 #' @param org Organismo (ej. "rat", "human", "mouse"). Ver \code{ORGANISMS}.
-#' @param score_threshold Score mínimo STRING (0-1000). Default 400.
-#' @param cache_dir Carpeta para cachear el resultado. NULL = sin caché.
+#' @param score_threshold Score minimo STRING (0-1000). Default 400.
+#' @param cache_dir Carpeta para cachear el resultado. NULL = sin cache.
 #'
 #' @return Data.frame con columnas \code{from}, \code{to}, \code{cost}.
 #' @export
@@ -73,7 +73,7 @@ get_string_interactome <- function(genes,
   )
 
   if (is.null(network) || nrow(network) == 0) {
-    stop("STRING no devolvió interacciones. Prueba a bajar score_threshold.")
+    stop("STRING no devolvio interacciones. Prueba a bajar score_threshold.")
   }
 
   # 3. Convertir a formato iPCSF
@@ -96,3 +96,8 @@ get_string_interactome <- function(genes,
 
   return(interactome)
 }
+
+#' @importFrom grDevices rainbow
+#' @importFrom stats complete.cases na.omit setNames
+#' @importFrom utils head
+NULL

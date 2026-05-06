@@ -16,9 +16,9 @@ get_string_interactome(
 
 \item{org}{Organismo (ej. "rat", "human", "mouse"). Ver \code{ORGANISMS}.}
 
-\item{score_threshold}{Score mínimo STRING (0-1000). Default 400.}
+\item{score_threshold}{Score minimo STRING (0-1000). Default 400.}
 
-\item{cache_dir}{Carpeta para cachear el resultado. NULL = sin caché.}
+\item{cache_dir}{Carpeta para cachear el resultado. NULL = sin cache.}
 }
 \value{
 Data.frame con columnas \code{from}, \code{to}, \code{cost}.

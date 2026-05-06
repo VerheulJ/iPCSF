@@ -29,3 +29,9 @@ ORGANISMS <- list(
   # Parásito
   malaria     = list(taxid = 36329,  orgdb = "org.Pf.plasmo.db",  kegg = "pfa", keytype = "ORF",    nombre = "Plasmodium falciparum")
 )
+
+#' @importFrom grDevices rainbow
+#' @importFrom stats complete.cases na.omit setNames
+#' @importFrom utils head
+NULL
+
