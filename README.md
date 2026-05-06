@@ -30,7 +30,7 @@ iPCSF is an R package that extends the original [PCSF](https://bioconductor.org/
 install.packages("devtools")
 
 # Install iPCSF from GitHub
-devtools::install_github("juliaverheul/iPCSF")
+devtools::install_github("VerheulJ/iPCSF")
 ```
 
 ### Bioconductor dependencies
@@ -192,8 +192,7 @@ iPCSF()
 If you use iPCSF in your research, please cite:
 Verheul-Campos, J. (2026). iPCSF: Improved Prize-Collecting Steiner Forest
 with automatic interactome and modern network visualization.
-R package version 0.0.1. https://github.com/juliaverheul/iPCSF
-
+R package version 0.0.1. https://github.com/VerheulJ/iPCSF
 And the original PCSF algorithm:
 Akhmedov M, et al. (2017). PCSF: An R-package for network-based
 interpretation of high-throughput data. PLOS Computational Biology.
