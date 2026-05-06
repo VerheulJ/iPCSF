@@ -39,7 +39,7 @@ get_string_interactome <- function(genes,
   resp_map <- httr::GET(
     "https://string-db.org/api/json/get_string_ids",
     query = list(
-      identifiers     = paste(genes, collapse = "\r"),
+      identifiers = paste(genes, collapse = "%0d"),
       species         = org_info$taxid,
       limit           = 1,
       echo_query      = 1,
@@ -64,7 +64,7 @@ get_string_interactome <- function(genes,
   resp_net <- httr::GET(
     "https://string-db.org/api/json/network",
     query = list(
-      identifiers     = paste(string_ids, collapse = "\r"),
+      identifiers     = paste(string_ids, collapse ="%0d"),
       species         = org_info$taxid,
       required_score  = score_threshold,
       network_type    = "functional",
