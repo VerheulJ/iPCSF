@@ -1,0 +1,53 @@
+Package: iPCSF
+Title: Improved Prize-Collecting Steiner Forest with Modern Network Visualization
+Version: 0.0.1
+Authors@R: person("Julia", "Verheul-Campos",
+    email = "verheuljulia@gmail.com",
+    role = c("aut", "cre"),
+    comment = c(ORCID = ""))
+Description: An enhanced implementation of the Prize-Collecting Steiner Forest 
+    (PCSF) algorithm for biological network analysis. Automatically downloads 
+    protein interaction networks from the STRING database for any supported 
+    organism, performs functional enrichment analysis (GO and KEGG), and 
+    generates modern interactive HTML network visualizations with cluster 
+    annotation.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+biocViews: NetworkAnalysis, Proteomics, GeneOntology, KEGG, MultipleComparison
+Imports:
+    PCSF,
+    igraph,
+    dplyr,
+    jsonlite,
+    httr,
+    clusterProfiler,
+    AnnotationDbi,
+    BiocManager
+Suggests:
+    org.Hs.eg.db,
+    org.Mm.eg.db,
+    org.Rn.eg.db,
+    org.Bt.eg.db,
+    org.Cf.eg.db,
+    org.Ss.eg.db,
+    org.Mmu.eg.db,
+    org.Pt.eg.db,
+    org.Gg.eg.db,
+    org.Xl.eg.db,
+    org.Dr.eg.db,
+    org.Dm.eg.db,
+    org.Ce.eg.db,
+    org.Sc.sgd.db,
+    org.Ag.eg.db,
+    org.At.tair.db,
+    org.EcK12.eg.db,
+    org.EcSakai.eg.db,
+    org.Pf.plasmo.db,
+    readxl,
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+URL: https://github.com/juliaverheul/iPCSF
+BugReports: https://github.com/juliaverheul/iPCSF/issues
+Config/roxygen2/version: 8.0.0
