@@ -13,8 +13,28 @@
 #'     \item \code{label} Etiqueta para mostrar en el HTML (opcional, default = nombre de la condicion)
 #'     \item \code{color} Color hex para la condicion (opcional, default = "#377EB8")
 #'   }
-#' @param org Organismo. Ej: "rat", "human", "mouse". Ver \code{ORGANISMS}.
-#' @param gene_col Nombre de la columna con Gene Symbols. Default \code{"gene"}.
+#' @param org Organism code. One of:
+#'   \itemize{
+#'     \item \code{"human"} - \emph{Homo sapiens}
+#'     \item \code{"mouse"} - \emph{Mus musculus}
+#'     \item \code{"rat"} - \emph{Rattus norvegicus}
+#'     \item \code{"bovine"} - \emph{Bos taurus}
+#'     \item \code{"canine"} - \emph{Canis lupus familiaris}
+#'     \item \code{"pig"} - \emph{Sus scrofa}
+#'     \item \code{"rhesus"} - \emph{Macaca mulatta}
+#'     \item \code{"chimp"} - \emph{Pan troglodytes}
+#'     \item \code{"chicken"} - \emph{Gallus gallus}
+#'     \item \code{"xenopus"} - \emph{Xenopus laevis}
+#'     \item \code{"zebrafish"} - \emph{Danio rerio}
+#'     \item \code{"fly"} - \emph{Drosophila melanogaster}
+#'     \item \code{"worm"} - \emph{Caenorhabditis elegans}
+#'     \item \code{"yeast"} - \emph{Saccharomyces cerevisiae}
+#'     \item \code{"mosquito"} - \emph{Anopheles gambiae}
+#'     \item \code{"arabidopsis"} - \emph{Arabidopsis thaliana}
+#'     \item \code{"ecoli_k12"} - \emph{Escherichia coli} K12
+#'     \item \code{"ecoli_sakai"} - \emph{Escherichia coli} Sakai
+#'     \item \code{"malaria"} - \emph{Plasmodium falciparum}
+#'   }#' @param gene_col Nombre de la columna con Gene Symbols. Default \code{"gene"}.
 #' @param log2fc_col Nombre de la columna con log2 fold-change. Default \code{"log2FC"}.
 #' @param pval_col Nombre de la columna con p-valor (-log10). Default \code{"pvalue"}.
 #' @param score_threshold Score minimo STRING (0-1000). Default 400.
