@@ -34,55 +34,39 @@ get_string_interactome <- function(genes,
 
   message("Consultando STRING API para ", org_info$nombre, "...")
 
-  # 1. Mapear genes a STRING IDs
-  # Igual que Python: requests.get(url, params=params)
-  resp_map <- httr::GET(
-    "https://string-db.org/api/json/get_string_ids",
-    query = list(
-      identifiers = paste(genes, collapse = "%0d"),
-      species         = org_info$taxid,
-      limit           = 1,
-      echo_query      = 1,
-      caller_identity = "iPCSF"
-    )
-  )
-  httr::stop_for_status(resp_map)
-
-  mapping <- jsonlite::fromJSON(
-    httr::content(resp_map, "text", encoding = "UTF-8")
-  )
-
-  if (is.null(mapping) || nrow(mapping) == 0) {
-    stop("No se encontraron genes en STRING para: ", org_info$nombre)
-  }
-
-  string_ids <- unique(mapping$stringId)
-  message("  ", length(string_ids), "/", length(genes), " genes mapeados en STRING")
-
-  # 2. Obtener red de interacciones
-  # Igual que Python: method = "tsv/network" pero en JSON
-  resp_net <- httr::GET(
+  # Una sola llamada POST con los gene symbols directamente
+  # Igual que Python: response = requests.get(url, params=params)
+  resp <- httr::POST(
     "https://string-db.org/api/json/network",
-    query = list(
-      identifiers     = paste(string_ids, collapse ="%0d"),
-      species         = org_info$taxid,
-      required_score  = score_threshold,
+    body = list(
+      identifiers     = paste(genes, collapse = "%0d"),
+      species         = as.character(org_info$taxid),
+      required_score  = as.character(score_threshold),
       network_type    = "functional",
       caller_identity = "iPCSF"
-    )
+    ),
+    encode = "form"
   )
-  httr::stop_for_status(resp_net)
+  httr::stop_for_status(resp)
 
   network <- jsonlite::fromJSON(
-    httr::content(resp_net, "text", encoding = "UTF-8")
+    httr::content(resp, "text", encoding = "UTF-8")
   )
 
-  if (is.null(network) || nrow(network) == 0) {
-    stop("STRING no devolvio interacciones. Prueba a bajar score_threshold.")
+  if (is.null(network) || length(network) == 0 || nrow(network) == 0) {
+    stop(
+      "STRING no devolvio interacciones.\n",
+      "Sugerencias:\n",
+      "  - Prueba a bajar score_threshold (actual: ", score_threshold, ")\n",
+      "  - Verifica que los gene symbols son correctos para ", org_info$nombre
+    )
   }
 
-  # 3. Convertir a formato iPCSF
-  # Igual que Python: df con from, to, cost
+  # Contar genes mapeados
+  genes_encontrados <- unique(c(network$preferredName_A, network$preferredName_B))
+  message("  ", length(genes_encontrados), "/", length(genes), " genes mapeados en STRING")
+
+  # Convertir a formato iPCSF: from, to, cost
   interactome <- data.frame(
     from = network$preferredName_A,
     to   = network$preferredName_B,
@@ -102,8 +86,3 @@ get_string_interactome <- function(genes,
 
   return(interactome)
 }
-
-#' @importFrom grDevices rainbow
-#' @importFrom stats complete.cases na.omit setNames
-#' @importFrom utils head
-NULL
