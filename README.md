@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # iPCSF <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 > Improved Prize-Collecting Steiner Forest with automatic interactome and modern network visualization
@@ -202,3 +203,7 @@ interpretation of high-throughput data. PLOS Computational Biology.
 ## License
 
 MIT © Julia Verheul-Campos
+=======
+# iPCSF
+Improved Prize-Collecting Steiner Forest with automatic interactome and modern network visualization
+>>>>>>> 11add726e6522accc0fe9cb15b715c3f742f01ee
