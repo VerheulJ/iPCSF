@@ -15,7 +15,7 @@ iPCSF(
   output_file = "iPCSF_network.html",
   w = 0.85,
   b = 1,
-  mu = 5e-05
+  mu = 0.00005
 )
 }
 \arguments{
@@ -47,7 +47,7 @@ iPCSF(
 \item \code{"ecoli_k12"} - \emph{Escherichia coli} K12
 \item \code{"ecoli_sakai"} - \emph{Escherichia coli} Sakai
 \item \code{"malaria"} - \emph{Plasmodium falciparum}
-}#' @param gene_col Nombre de la columna con Gene Symbols. Default \code{"gene"}.}
+}}
 
 \item{log2fc_col}{Nombre de la columna con log2 fold-change. Default \code{"log2FC"}.}
 

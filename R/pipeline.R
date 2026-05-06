@@ -34,7 +34,7 @@
 #'     \item \code{"ecoli_k12"} - \emph{Escherichia coli} K12
 #'     \item \code{"ecoli_sakai"} - \emph{Escherichia coli} Sakai
 #'     \item \code{"malaria"} - \emph{Plasmodium falciparum}
-#'   }#' @param gene_col Nombre de la columna con Gene Symbols. Default \code{"gene"}.
+#'   }
 #' @param log2fc_col Nombre de la columna con log2 fold-change. Default \code{"log2FC"}.
 #' @param pval_col Nombre de la columna con p-valor (-log10). Default \code{"pvalue"}.
 #' @param score_threshold Score minimo STRING (0-1000). Default 400.

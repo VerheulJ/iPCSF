@@ -35,39 +35,44 @@ get_string_interactome <- function(genes,
   message("Consultando STRING API para ", org_info$nombre, "...")
 
   # 1. Mapear genes a STRING IDs
-  genes_str <- paste(genes, collapse = "%0d")
-  url_map <- paste0(
-    "https://string-db.org/api/json/get_string_ids?",
-    "identifiers=", genes_str,
-    "&species=", org_info$taxid,
-    "&limit=1&echo_query=1"
+  # Igual que Python: requests.get(url, params=params)
+  resp_map <- httr::GET(
+    "https://string-db.org/api/json/get_string_ids",
+    query = list(
+      identifiers     = paste(genes, collapse = "\r"),
+      species         = org_info$taxid,
+      limit           = 1,
+      echo_query      = 1,
+      caller_identity = "iPCSF"
+    )
   )
-
-  resp_map <- httr::GET(url_map)
   httr::stop_for_status(resp_map)
+
   mapping <- jsonlite::fromJSON(
     httr::content(resp_map, "text", encoding = "UTF-8")
   )
 
   if (is.null(mapping) || nrow(mapping) == 0) {
-    stop("No se encontraron genes en STRING para el organismo: ", org_info$nombre)
+    stop("No se encontraron genes en STRING para: ", org_info$nombre)
   }
 
-  string_ids    <- unique(mapping$stringId)
+  string_ids <- unique(mapping$stringId)
   message("  ", length(string_ids), "/", length(genes), " genes mapeados en STRING")
 
   # 2. Obtener red de interacciones
-  ids_str <- paste(string_ids, collapse = "%0d")
-  url_net <- paste0(
-    "https://string-db.org/api/json/network?",
-    "identifiers=", ids_str,
-    "&species=", org_info$taxid,
-    "&required_score=", score_threshold,
-    "&network_type=functional"
+  # Igual que Python: method = "tsv/network" pero en JSON
+  resp_net <- httr::GET(
+    "https://string-db.org/api/json/network",
+    query = list(
+      identifiers     = paste(string_ids, collapse = "\r"),
+      species         = org_info$taxid,
+      required_score  = score_threshold,
+      network_type    = "functional",
+      caller_identity = "iPCSF"
+    )
   )
-
-  resp_net <- httr::GET(url_net)
   httr::stop_for_status(resp_net)
+
   network <- jsonlite::fromJSON(
     httr::content(resp_net, "text", encoding = "UTF-8")
   )
@@ -77,6 +82,7 @@ get_string_interactome <- function(genes,
   }
 
   # 3. Convertir a formato iPCSF
+  # Igual que Python: df con from, to, cost
   interactome <- data.frame(
     from = network$preferredName_A,
     to   = network$preferredName_B,
