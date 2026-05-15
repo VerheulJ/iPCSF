@@ -14,7 +14,7 @@ construir_red(
   cache_dir = NULL,
   w = 0.85,
   b = 1,
-  mu = 0.00005
+  mu = 5e-05
 )
 }
 \arguments{

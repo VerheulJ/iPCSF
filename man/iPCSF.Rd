@@ -13,91 +13,80 @@ iPCSF(
   score_threshold = 400,
   cache_dir = NULL,
   output_file = "iPCSF_network.html",
-  w = 0.85,
-  b = 1,
-  mu = 0.00005
+  w = NULL,
+  b = NULL,
+  mu = NULL
 )
 }
 \arguments{
-\item{conditions}{Lista nombrada de condiciones. Cada elemento debe contener:
+\item{conditions}{Lista nombrada de condiciones, o un entero N para
+recopilar N condiciones interactivamente. Cada elemento de la lista debe contener:
 \itemize{
 \item \code{data} Data.frame con los genes desregulados (obligatorio)
-\item \code{label} Etiqueta para mostrar en el HTML (opcional, default = nombre de la condicion)
-\item \code{color} Color hex para la condicion (opcional, default = "#377EB8")
+\item \code{label} Etiqueta para mostrar en el HTML (opcional)
+\item \code{color} Color hex para la condicion (opcional)
+\item \code{gene_col} Columna de genes (opcional, sobreescribe el global)
+\item \code{log2fc_col} Columna log2FC (opcional, sobreescribe el global)
+\item \code{pval_col} Columna pvalor (opcional, sobreescribe el global)
 }}
 
-\item{org}{Organism code. One of:
-\itemize{
-\item \code{"human"} - \emph{Homo sapiens}
-\item \code{"mouse"} - \emph{Mus musculus}
-\item \code{"rat"} - \emph{Rattus norvegicus}
-\item \code{"bovine"} - \emph{Bos taurus}
-\item \code{"canine"} - \emph{Canis lupus familiaris}
-\item \code{"pig"} - \emph{Sus scrofa}
-\item \code{"rhesus"} - \emph{Macaca mulatta}
-\item \code{"chimp"} - \emph{Pan troglodytes}
-\item \code{"chicken"} - \emph{Gallus gallus}
-\item \code{"xenopus"} - \emph{Xenopus laevis}
-\item \code{"zebrafish"} - \emph{Danio rerio}
-\item \code{"fly"} - \emph{Drosophila melanogaster}
-\item \code{"worm"} - \emph{Caenorhabditis elegans}
-\item \code{"yeast"} - \emph{Saccharomyces cerevisiae}
-\item \code{"mosquito"} - \emph{Anopheles gambiae}
-\item \code{"arabidopsis"} - \emph{Arabidopsis thaliana}
-\item \code{"ecoli_k12"} - \emph{Escherichia coli} K12
-\item \code{"ecoli_sakai"} - \emph{Escherichia coli} Sakai
-\item \code{"malaria"} - \emph{Plasmodium falciparum}
-}}
+\item{org}{Organism code. One of: "human", "mouse", "rat", "bovine", "canine",
+"pig", "rhesus", "chimp", "chicken", "xenopus", "zebrafish", "fly", "worm",
+"yeast", "mosquito", "arabidopsis", "ecoli_k12", "ecoli_sakai", "malaria".}
 
-\item{log2fc_col}{Nombre de la columna con log2 fold-change. Default \code{"log2FC"}.}
+\item{gene_col}{Column name for Gene Symbols (global default). Default \code{"gene"}.}
 
-\item{pval_col}{Nombre de la columna con p-valor (-log10). Default \code{"pvalue"}.}
+\item{log2fc_col}{Column name for log2 fold-change (global default). Default \code{"log2FC"}.}
 
-\item{score_threshold}{Score minimo STRING (0-1000). Default 400.}
+\item{pval_col}{Column name for p-value (-log10) (global default). Default \code{"pvalue"}.}
 
-\item{cache_dir}{Carpeta para cachear el interactoma descargado. \code{NULL} = sin cache.}
+\item{score_threshold}{Minimum STRING interaction score (0-1000). Default 400.}
 
-\item{output_file}{Nombre del archivo HTML generado. Default \code{"iPCSF_network.html"}.}
+\item{cache_dir}{Folder to cache the downloaded interactome. \code{NULL} = no cache.}
 
-\item{w}{Parametro omega de PCSF. Default 0.85.}
+\item{output_file}{Name of the generated HTML file. Default \code{"iPCSF_network.html"}.}
 
-\item{b}{Parametro beta de PCSF. Default 1.}
+\item{w}{PCSF omega parameter. \code{NULL} = calculated automatically from data.}
 
-\item{mu}{Parametro mu de PCSF. Default 0.00005.}
+\item{b}{PCSF beta parameter. \code{NULL} = calculated automatically from data.}
+
+\item{mu}{PCSF mu parameter. \code{NULL} = calculated automatically from data.}
 }
 \value{
-Lista invisible con \code{resultados} (lista por condicion),
-\code{html} (ruta al HTML) y \code{org} (info del organismo).
+Invisible list with \code{resultados}, \code{html} and \code{org}.
 }
 \description{
 Analisis PCSF completo con interactoma automatico
 }
 \examples{
 \dontrun{
-# Ejemplo con una condicion
+# Interactive mode -- iPCSF asks for data of each condition
+iPCSF(conditions = 2, org = "rat", gene_col = "Gene.Symbol")
+
+# One condition, automatic parameters
 iPCSF(
   conditions = list(
-    case1 = list(data = df_case1, label = "Treatment A", color = "#E41A1C")
+    alcohol = list(data = df, label = "Alcohol", color = "#E41A1C")
   ),
   org        = "rat",
   gene_col   = "Gene.Symbol",
-  log2fc_col = "log2cociente",
-  pval_col   = "log10pvalor"
+  log2fc_col = "log2cociente_alcohol",
+  pval_col   = "log10pvalor_alcohol"
 )
 
-# Ejemplo con dos condiciones
+# Two conditions with different columns, manual parameters
 iPCSF(
   conditions = list(
-    case1 = list(data = df_case1, label = "Treatment A", color = "#E41A1C"),
-    case2 = list(data = df_case2, label = "Treatment B", color = "#377EB8")
+    females = list(data = df_f, label = "Females", color = "#E41A1C",
+                   log2fc_col = "log2cociente_hembras",
+                   pval_col   = "log10pvalor_hembras"),
+    males   = list(data = df_m, label = "Males",   color = "#377EB8",
+                   log2fc_col = "log2cociente_machos",
+                   pval_col   = "log10pvalor_machos")
   ),
-  org             = "human",
-  gene_col        = "gene",
-  log2fc_col      = "log2FC",
-  pval_col        = "pvalue",
-  score_threshold = 700,
-  cache_dir       = "~/.iPCSF_cache",
-  output_file     = "my_network.html"
+  org      = "rat",
+  gene_col = "Gene.Symbol",
+  w = 5, b = 1, mu = 0.005
 )
 }
 }

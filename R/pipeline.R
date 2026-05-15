@@ -5,75 +5,131 @@
 # Null-coalesce operator (internal)
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
+#' @importFrom grDevices rainbow
+#' @importFrom stats complete.cases na.omit setNames sd
+#' @importFrom utils head readline
+NULL
+
+#' Calcula parametros optimos w, b, mu a partir de los datos
+#' @keywords internal
+calcular_parametros <- function(terminals, interactome) {
+  prize_medio     <- mean(abs(terminals), na.rm = TRUE)
+  n_terminals     <- length(terminals)
+  n_genes_total   <- length(unique(c(interactome$from, interactome$to)))
+  n_interacciones <- nrow(interactome)
+  grado_medio     <- (2 * n_interacciones) / n_genes_total
+
+  w_opt  <- round(sqrt(n_terminals) * 0.4, 2)
+  b_opt  <- 1
+  mu_opt <- round(prize_medio / (grado_medio * 100), 5)
+
+  message("  Parametros calculados automaticamente:")
+  message("    w  = ", w_opt,  " (sqrt(", n_terminals, ") * 0.4)")
+  message("    b  = ", b_opt)
+  message("    mu = ", mu_opt, " (prize_medio / (grado_medio * 100))")
+
+  list(w = w_opt, b = b_opt, mu = mu_opt)
+}
+
+#' Recopila interactivamente los datos de N condiciones
+#' @keywords internal
+recopilar_condiciones <- function(n) {
+  conditions <- list()
+  colores_default <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+                       "#FF7F00", "#A65628", "#F781BF", "#999999")
+
+  for (i in seq_len(n)) {
+    cat(sprintf("\n--- Condicion %d de %d ---\n", i, n))
+
+    id    <- readline(prompt = "  ID corto (ej: females): ")
+    label <- readline(prompt = "  Etiqueta HTML (ej: Females): ")
+
+    color_default <- colores_default[((i - 1) %% length(colores_default)) + 1]
+    color_input   <- readline(prompt = sprintf("  Color hex [default: %s]: ", color_default))
+    color         <- if (nchar(trimws(color_input)) == 0) color_default else trimws(color_input)
+
+    ruta <- readline(prompt = "  Ruta al archivo .xlsx: ")
+    while (!file.exists(ruta)) {
+      cat("  Archivo no encontrado. Intenta de nuevo.\n")
+      ruta <- readline(prompt = "  Ruta al archivo .xlsx: ")
+    }
+
+    df        <- readxl::read_xlsx(ruta)
+    cat("  Columnas disponibles:", paste(colnames(df), collapse = ", "), "\n")
+
+    gene_col   <- readline(prompt = "  Columna de genes (ej: Gene.Symbol): ")
+    log2fc_col <- readline(prompt = "  Columna log2FC: ")
+    pval_col   <- readline(prompt = "  Columna pvalor (-log10): ")
+
+    conditions[[id]] <- list(
+      data       = df,
+      label      = if (nchar(trimws(label)) == 0) id else label,
+      color      = color,
+      gene_col   = gene_col,
+      log2fc_col = log2fc_col,
+      pval_col   = pval_col
+    )
+  }
+  return(conditions)
+}
+
 #' Analisis PCSF completo con interactoma automatico
 #'
-#' @param conditions Lista nombrada de condiciones. Cada elemento debe contener:
+#' @param conditions Lista nombrada de condiciones, o un entero N para
+#'   recopilar N condiciones interactivamente. Cada elemento de la lista debe contener:
 #'   \itemize{
 #'     \item \code{data} Data.frame con los genes desregulados (obligatorio)
-#'     \item \code{label} Etiqueta para mostrar en el HTML (opcional, default = nombre de la condicion)
-#'     \item \code{color} Color hex para la condicion (opcional, default = "#377EB8")
+#'     \item \code{label} Etiqueta para mostrar en el HTML (opcional)
+#'     \item \code{color} Color hex para la condicion (opcional)
+#'     \item \code{gene_col} Columna de genes (opcional, sobreescribe el global)
+#'     \item \code{log2fc_col} Columna log2FC (opcional, sobreescribe el global)
+#'     \item \code{pval_col} Columna pvalor (opcional, sobreescribe el global)
 #'   }
-#' @param org Organism code. One of:
-#'   \itemize{
-#'     \item \code{"human"} - \emph{Homo sapiens}
-#'     \item \code{"mouse"} - \emph{Mus musculus}
-#'     \item \code{"rat"} - \emph{Rattus norvegicus}
-#'     \item \code{"bovine"} - \emph{Bos taurus}
-#'     \item \code{"canine"} - \emph{Canis lupus familiaris}
-#'     \item \code{"pig"} - \emph{Sus scrofa}
-#'     \item \code{"rhesus"} - \emph{Macaca mulatta}
-#'     \item \code{"chimp"} - \emph{Pan troglodytes}
-#'     \item \code{"chicken"} - \emph{Gallus gallus}
-#'     \item \code{"xenopus"} - \emph{Xenopus laevis}
-#'     \item \code{"zebrafish"} - \emph{Danio rerio}
-#'     \item \code{"fly"} - \emph{Drosophila melanogaster}
-#'     \item \code{"worm"} - \emph{Caenorhabditis elegans}
-#'     \item \code{"yeast"} - \emph{Saccharomyces cerevisiae}
-#'     \item \code{"mosquito"} - \emph{Anopheles gambiae}
-#'     \item \code{"arabidopsis"} - \emph{Arabidopsis thaliana}
-#'     \item \code{"ecoli_k12"} - \emph{Escherichia coli} K12
-#'     \item \code{"ecoli_sakai"} - \emph{Escherichia coli} Sakai
-#'     \item \code{"malaria"} - \emph{Plasmodium falciparum}
-#'   }
-#' @param log2fc_col Nombre de la columna con log2 fold-change. Default \code{"log2FC"}.
-#' @param pval_col Nombre de la columna con p-valor (-log10). Default \code{"pvalue"}.
-#' @param score_threshold Score minimo STRING (0-1000). Default 400.
-#' @param cache_dir Carpeta para cachear el interactoma descargado. \code{NULL} = sin cache.
-#' @param output_file Nombre del archivo HTML generado. Default \code{"iPCSF_network.html"}.
-#' @param w Parametro omega de PCSF. Default 0.85.
-#' @param b Parametro beta de PCSF. Default 1.
-#' @param mu Parametro mu de PCSF. Default 0.00005.
+#' @param org Organism code. One of: "human", "mouse", "rat", "bovine", "canine",
+#'   "pig", "rhesus", "chimp", "chicken", "xenopus", "zebrafish", "fly", "worm",
+#'   "yeast", "mosquito", "arabidopsis", "ecoli_k12", "ecoli_sakai", "malaria".
+#' @param gene_col Column name for Gene Symbols (global default). Default \code{"gene"}.
+#' @param log2fc_col Column name for log2 fold-change (global default). Default \code{"log2FC"}.
+#' @param pval_col Column name for p-value (-log10) (global default). Default \code{"pvalue"}.
+#' @param score_threshold Minimum STRING interaction score (0-1000). Default 400.
+#' @param cache_dir Folder to cache the downloaded interactome. \code{NULL} = no cache.
+#' @param output_file Name of the generated HTML file. Default \code{"iPCSF_network.html"}.
+#' @param w PCSF omega parameter. \code{NULL} = calculated automatically from data.
+#' @param b PCSF beta parameter. \code{NULL} = calculated automatically from data.
+#' @param mu PCSF mu parameter. \code{NULL} = calculated automatically from data.
 #'
-#' @return Lista invisible con \code{resultados} (lista por condicion),
-#'   \code{html} (ruta al HTML) y \code{org} (info del organismo).
+#' @return Invisible list with \code{resultados}, \code{html} and \code{org}.
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Ejemplo con una condicion
+#' # Interactive mode -- iPCSF asks for data of each condition
+#' iPCSF(conditions = 2, org = "rat", gene_col = "Gene.Symbol")
+#'
+#' # One condition, automatic parameters
 #' iPCSF(
 #'   conditions = list(
-#'     case1 = list(data = df_case1, label = "Treatment A", color = "#E41A1C")
+#'     alcohol = list(data = df, label = "Alcohol", color = "#E41A1C")
 #'   ),
 #'   org        = "rat",
 #'   gene_col   = "Gene.Symbol",
-#'   log2fc_col = "log2cociente",
-#'   pval_col   = "log10pvalor"
+#'   log2fc_col = "log2cociente_alcohol",
+#'   pval_col   = "log10pvalor_alcohol"
 #' )
 #'
-#' # Ejemplo con dos condiciones
+#' # Two conditions with different columns, manual parameters
 #' iPCSF(
 #'   conditions = list(
-#'     case1 = list(data = df_case1, label = "Treatment A", color = "#E41A1C"),
-#'     case2 = list(data = df_case2, label = "Treatment B", color = "#377EB8")
+#'     females = list(data = df_f, label = "Females", color = "#E41A1C",
+#'                    log2fc_col = "log2cociente_hembras",
+#'                    pval_col   = "log10pvalor_hembras"),
+#'     males   = list(data = df_m, label = "Males",   color = "#377EB8",
+#'                    log2fc_col = "log2cociente_machos",
+#'                    pval_col   = "log10pvalor_machos")
 #'   ),
-#'   org             = "human",
-#'   gene_col        = "gene",
-#'   log2fc_col      = "log2FC",
-#'   pval_col        = "pvalue",
-#'   score_threshold = 700,
-#'   cache_dir       = "~/.iPCSF_cache",
-#'   output_file     = "my_network.html"
+#'   org      = "rat",
+#'   gene_col = "Gene.Symbol",
+#'   w = 5, b = 1, mu = 0.005
 #' )
 #' }
 iPCSF <- function(conditions,
@@ -84,34 +140,43 @@ iPCSF <- function(conditions,
                   score_threshold = 400,
                   cache_dir       = NULL,
                   output_file     = "iPCSF_network.html",
-                  w  = 0.85,
-                  b  = 1,
-                  mu = 0.00005) {
+                  w  = NULL,
+                  b  = NULL,
+                  mu = NULL) {
 
+  # Validate organism
   org_info <- ORGANISMS[[org]]
   if (is.null(org_info)) {
     stop(
-      "Organismo '", org, "' no soportado.\n",
-      "Opciones disponibles: ", paste(names(ORGANISMS), collapse = ", ")
+      "Organism '", org, "' not supported.\n",
+      "Available options: ", paste(names(ORGANISMS), collapse = ", ")
     )
   }
 
+  # Si conditions es un entero, modo interactivo
+  if (is.numeric(conditions) && length(conditions) == 1) {
+    n <- as.integer(conditions)
+    cat(sprintf("\n[iPCSF] Modo interactivo: %d condicion(es)\n", n))
+    conditions <- recopilar_condiciones(n)
+  }
+
+  # Validate conditions list
   if (!is.list(conditions) || is.null(names(conditions)) ||
       any(names(conditions) == "")) {
     stop(
-      "'conditions' debe ser una lista nombrada.\n",
-      "Ejemplo:\n",
-      "  list(\n",
-      "    case1 = list(data = df1, label = 'Group A', color = '#E41A1C'),\n",
-      "    case2 = list(data = df2, label = 'Group B', color = '#377EB8')\n",
-      "  )"
+      "'conditions' must be a named list or an integer N.\n",
+      "Examples:\n",
+      "  conditions = 2  (interactive mode)\n",
+      "  conditions = list(case1 = list(data = df1, ...))\n"
     )
   }
 
   message("\n========================================")
   message("  iPCSF -- ", org_info$nombre)
-  message("  ", length(conditions), " condicion(es): ",
+  message("  ", length(conditions), " condition(s): ",
           paste(names(conditions), collapse = ", "))
+  if (is.null(w)) message("  w, b, mu: calculados automaticamente")
+  else            message("  w=", w, " b=", b, " mu=", mu)
   message("========================================\n")
 
   resultados <- list()
@@ -119,57 +184,105 @@ iPCSF <- function(conditions,
   for (cond_id in names(conditions)) {
     cond <- conditions[[cond_id]]
 
-    message("[", cond_id, "] Procesando...")
+    message("[", cond_id, "] Processing...")
 
-    # Validar campo data
     if (is.null(cond$data) || !is.data.frame(cond$data)) {
-      stop("Condicion '", cond_id, "': el campo 'data' debe ser un data.frame.")
+      stop("Condition '", cond_id, "': field 'data' must be a data.frame.")
     }
 
-    # Validar columnas
-    for (col in c(gene_col, log2fc_col, pval_col)) {
+    cond_gene_col   <- cond$gene_col   %||% gene_col
+    cond_log2fc_col <- cond$log2fc_col %||% log2fc_col
+    cond_pval_col   <- cond$pval_col   %||% pval_col
+
+    message("  gene_col   : ", cond_gene_col)
+    message("  log2fc_col : ", cond_log2fc_col)
+    message("  pval_col   : ", cond_pval_col)
+
+    for (col in c(cond_gene_col, cond_log2fc_col, cond_pval_col)) {
       if (!col %in% colnames(cond$data)) {
         stop(
-          "Condicion '", cond_id, "': columna '", col, "' no encontrada.\n",
-          "Columnas disponibles: ", paste(colnames(cond$data), collapse = ", ")
+          "Condition '", cond_id, "': column '", col, "' not found.\n",
+          "Available columns: ", paste(colnames(cond$data), collapse = ", ")
         )
       }
     }
 
-    # Construir red
+    # Obtener interactoma para calcular parametros si son NULL
+    org_key <- names(ORGANISMS)[
+      sapply(ORGANISMS, function(x) identical(x$taxid, org_info$taxid))
+    ]
+    genes_cond <- as.character(cond$data[[cond_gene_col]])
+    genes_cond <- genes_cond[!is.na(genes_cond) & genes_cond != ""]
+
+    # Calcular parametros automaticamente si no se especifican
+    w_use  <- w
+    b_use  <- b
+    mu_use <- mu
+
+    if (is.null(w) || is.null(b) || is.null(mu)) {
+      message("  Descargando interactoma para calcular parametros...")
+      interactome_tmp <- tryCatch(
+        get_string_interactome(
+          genes           = genes_cond,
+          org             = org_key,
+          score_threshold = score_threshold,
+          cache_dir       = cache_dir
+        ),
+        error = function(e) NULL
+      )
+
+      if (!is.null(interactome_tmp)) {
+        terminals_tmp <- setNames(
+          abs(as.numeric(cond$data[[cond_pval_col]])),
+          genes_cond
+        )
+        terminals_tmp <- terminals_tmp[!is.na(terminals_tmp) & terminals_tmp > 0]
+
+        params <- calcular_parametros(terminals_tmp, interactome_tmp)
+        w_use  <- w  %||% params$w
+        b_use  <- b  %||% params$b
+        mu_use <- mu %||% params$mu
+      } else {
+        w_use  <- w  %||% 2
+        b_use  <- b  %||% 1
+        mu_use <- mu %||% 0.0005
+        message("  No se pudo calcular parametros, usando defaults: w=", w_use,
+                " b=", b_use, " mu=", mu_use)
+      }
+    }
+
+    # Build network
     res <- tryCatch(
       construir_red(
         desregulated_list = cond$data,
         org_info          = org_info,
-        gene_col          = gene_col,
-        log2fc_col        = log2fc_col,
-        pval_col          = pval_col,
+        gene_col          = cond_gene_col,
+        log2fc_col        = cond_log2fc_col,
+        pval_col          = cond_pval_col,
         score_threshold   = score_threshold,
         cache_dir         = cache_dir,
-        w = w, b = b, mu = mu
+        w = w_use, b = b_use, mu = mu_use
       ),
       error = function(e) {
-        message("  [", cond_id, "] ERROR en red: ", e$message)
+        message("  [", cond_id, "] ERROR in network: ", e$message)
         return(NULL)
       }
     )
 
     if (is.null(res)) {
-      message("  [", cond_id, "] Omitiendo condicion por error.")
+      message("  [", cond_id, "] Skipping condition due to error.")
       resultados[[cond_id]] <- NULL
       next
     }
 
-    # Metadatos de la condicion
     res$label <- cond$label %||% cond_id
     res$color <- cond$color %||% "#377EB8"
 
-    # Enriquecimiento
-    message("[", cond_id, "] Calculando enriquecimiento funcional...")
+    message("[", cond_id, "] Running functional enrichment...")
     res <- tryCatch(
       aplicar_enriquecimiento(res, org_info),
       error = function(e) {
-        message("  [", cond_id, "] WARNING enriquecimiento: ", e$message)
+        message("  [", cond_id, "] WARNING enrichment: ", e$message)
         res$tooltips <- list()
         return(res)
       }
@@ -177,25 +290,23 @@ iPCSF <- function(conditions,
 
     resultados[[cond_id]] <- res
     message("[", cond_id, "] OK -- ",
-            igraph::vcount(res$subnet), " nodos, ",
+            igraph::vcount(res$subnet), " nodes, ",
             length(unique(igraph::V(res$subnet)$cluster)), " clusters\n")
   }
 
-  # Verificar que al menos una condicion tuvo exito
   validos <- Filter(Negate(is.null), resultados)
   if (length(validos) == 0) {
-    stop("Ninguna condicion produjo resultados. Revisa los datos de entrada.")
+    stop("No conditions produced results. Check your input data.")
   }
 
-  # Generar HTML
-  message("[iPCSF] Generando visualizacion HTML...")
+  message("[iPCSF] Generating HTML visualization...")
   generar_html(
     resultados  = resultados,
     output_file = output_file,
     titulo      = paste0("iPCSF \u2014 ", org_info$nombre)
   )
 
-  message("[iPCSF] Completado.")
+  message("[iPCSF] Done.")
   message("[iPCSF] HTML: ", output_file, "\n")
 
   return(invisible(list(
@@ -204,9 +315,3 @@ iPCSF <- function(conditions,
     org        = org_info
   )))
 }
-
-
-#' @importFrom grDevices rainbow
-#' @importFrom stats complete.cases na.omit setNames
-#' @importFrom utils head
-NULL

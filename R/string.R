@@ -1,7 +1,6 @@
 # ============================================
 # DESCARGA DE INTERACTOMA DESDE STRING API
 # ============================================
-
 #' Descarga el interactoma desde STRING API
 #'
 #' @param genes Vector de Gene Symbols.
@@ -15,7 +14,6 @@ get_string_interactome <- function(genes,
                                    org = "human",
                                    score_threshold = 400,
                                    cache_dir = NULL) {
-
   org_info <- ORGANISMS[[org]]
   if (is.null(org_info)) {
     stop("Organismo '", org, "' no reconocido.\nOpciones: ",
@@ -34,9 +32,8 @@ get_string_interactome <- function(genes,
 
   message("Consultando STRING API para ", org_info$nombre, "...")
 
-  # Una sola llamada POST con los gene symbols directamente
-  # Igual que Python: response = requests.get(url, params=params)
-  resp <- httr::POST(
+  # 1. Interacciones entre los genes de entrada
+  resp_network <- httr::POST(
     "https://string-db.org/api/json/network",
     body = list(
       identifiers     = paste(genes, collapse = "%0d"),
@@ -47,11 +44,34 @@ get_string_interactome <- function(genes,
     ),
     encode = "form"
   )
-  httr::stop_for_status(resp)
-
+  httr::stop_for_status(resp_network)
   network <- jsonlite::fromJSON(
-    httr::content(resp, "text", encoding = "UTF-8")
+    httr::content(resp_network, "text", encoding = "UTF-8")
   )
+
+  # 2. Vecinos externos (potenciales Steiner nodes)
+  resp_partners <- httr::POST(
+    "https://string-db.org/api/json/interaction_partners",
+    body = list(
+      identifiers     = paste(genes, collapse = "%0d"),
+      species         = as.character(org_info$taxid),
+      required_score  = as.character(score_threshold),
+      limit           = "5",
+      caller_identity = "iPCSF"
+    ),
+    encode = "form"
+  )
+  httr::stop_for_status(resp_partners)
+  partners <- jsonlite::fromJSON(
+    httr::content(resp_partners, "text", encoding = "UTF-8")
+  )
+
+  # 3. Combinar ambas redes
+  if (!is.null(partners) && length(partners) > 0 && nrow(partners) > 0) {
+    network <- rbind(network, partners)
+    network <- network[!duplicated(paste(network$preferredName_A,
+                                         network$preferredName_B)), ]
+  }
 
   if (is.null(network) || length(network) == 0 || nrow(network) == 0) {
     stop(
@@ -62,9 +82,12 @@ get_string_interactome <- function(genes,
     )
   }
 
-  # Contar genes mapeados
+  # Contar genes mapeados y posibles Steiner
   genes_encontrados <- unique(c(network$preferredName_A, network$preferredName_B))
-  message("  ", length(genes_encontrados), "/", length(genes), " genes mapeados en STRING")
+  genes_steiner     <- setdiff(genes_encontrados, genes)
+  message("  ", length(intersect(genes_encontrados, genes)), "/", length(genes),
+          " genes mapeados en STRING")
+  message("  ", length(genes_steiner), " posibles Steiner nodes disponibles")
 
   # Convertir a formato iPCSF: from, to, cost
   interactome <- data.frame(
