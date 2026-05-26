@@ -86,8 +86,6 @@ recopilar_condiciones <- function(n) {
 #' )
 #' }
 #'
-#' }
-#'
 #' @param conditions Named list of conditions, or an integer N to collect
 #'   N conditions interactively. Each list element must contain:
 #'   \itemize{
