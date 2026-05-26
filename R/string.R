@@ -1,22 +1,53 @@
 # ============================================
-# DESCARGA DE INTERACTOMA DESDE STRING API
+# DOWNLOAD INTERACTOME FROM STRING API
 # ============================================
-#' Descarga el interactoma desde STRING API
+
+#' Download the full STRING interactome for a given organism
 #'
-#' @param genes Vector de Gene Symbols.
-#' @param org Organismo (ej. "rat", "human", "mouse"). Ver \code{ORGANISMS}.
-#' @param score_threshold Score minimo STRING (0-1000). Default 400.
-#' @param cache_dir Carpeta para cachear el resultado. NULL = sin cache.
+#' Downloads the complete protein interaction network from the STRING database,
+#' filters by confidence score and returns only interactions involving
+#' the input genes or their neighbors (potential Steiner nodes).
 #'
-#' @return Data.frame con columnas \code{from}, \code{to}, \code{cost}.
+#' @param genes Character vector of Gene Symbols.
+#' @param org Organism code. One of: "human", "mouse", "rat", "bovine", "canine",
+#'   "pig", "rhesus", "chimp", "chicken", "xenopus", "zebrafish", "fly", "worm",
+#'   "yeast", "mosquito", "arabidopsis", "ecoli_k12", "ecoli_sakai", "malaria".
+#' @param score_threshold Minimum STRING interaction score (0-1000). Default 400.
+#'   \itemize{
+#'     \item 900-1000: very high confidence
+#'     \item 700-900: high confidence
+#'     \item 400-700: medium confidence (recommended)
+#'     \item 150-400: low confidence
+#'   }
+#' @param cache_dir Folder to cache the downloaded interactome. \code{NULL} = no cache.
+#'
+#' @return Data.frame with three columns:
+#'   \itemize{
+#'     \item \code{from} Gene symbol A
+#'     \item \code{to} Gene symbol B
+#'     \item \code{cost} Edge cost = 1 - (STRING score / 1000).
+#'       Lower cost = more reliable interaction = preferred by PCSF.
+#'       With default threshold 400, cost ranges from 0.0 to 0.6.
+#'   }
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' genes <- c("Actb", "Tp53", "Mapk1", "Akt1")
+#' interactome <- get_string_interactome(
+#'   genes           = genes,
+#'   org             = "rat",
+#'   score_threshold = 400
+#' )
+#' head(interactome)
+#' }
 get_string_interactome <- function(genes,
                                    org = "human",
                                    score_threshold = 400,
                                    cache_dir = NULL) {
   org_info <- ORGANISMS[[org]]
   if (is.null(org_info)) {
-    stop("Organismo '", org, "' no reconocido.\nOpciones: ",
+    stop("Organism '", org, "' not recognized.\nOptions: ",
          paste(names(ORGANISMS), collapse = ", "))
   }
 
@@ -25,14 +56,14 @@ get_string_interactome <- function(genes,
     cache_file <- file.path(cache_dir,
                             paste0("STRING_", org, "_", score_threshold, ".rds"))
     if (file.exists(cache_file)) {
-      message("Cargando interactoma desde cache: ", cache_file)
+      message("Loading interactome from cache: ", cache_file)
       return(readRDS(cache_file))
     }
   }
 
-  message("Consultando STRING API para ", org_info$nombre, "...")
+  message("Querying STRING API for ", org_info$nombre, "...")
 
-  # 1. Interacciones entre los genes de entrada
+  # 1. Interactions between input genes
   resp_network <- httr::POST(
     "https://string-db.org/api/json/network",
     body = list(
@@ -49,7 +80,7 @@ get_string_interactome <- function(genes,
     httr::content(resp_network, "text", encoding = "UTF-8")
   )
 
-  # 2. Vecinos externos (potenciales Steiner nodes)
+  # 2. External neighbors (potential Steiner nodes)
   resp_partners <- httr::POST(
     "https://string-db.org/api/json/interaction_partners",
     body = list(
@@ -66,7 +97,7 @@ get_string_interactome <- function(genes,
     httr::content(resp_partners, "text", encoding = "UTF-8")
   )
 
-  # 3. Combinar ambas redes
+  # 3. Combine both networks
   if (!is.null(partners) && length(partners) > 0 && nrow(partners) > 0) {
     network <- rbind(network, partners)
     network <- network[!duplicated(paste(network$preferredName_A,
@@ -75,21 +106,25 @@ get_string_interactome <- function(genes,
 
   if (is.null(network) || length(network) == 0 || nrow(network) == 0) {
     stop(
-      "STRING no devolvio interacciones.\n",
-      "Sugerencias:\n",
-      "  - Prueba a bajar score_threshold (actual: ", score_threshold, ")\n",
-      "  - Verifica que los gene symbols son correctos para ", org_info$nombre
+      "STRING returned no interactions.\n",
+      "Suggestions:\n",
+      "  - Try lowering score_threshold (current: ", score_threshold, ")\n",
+      "  - Verify that gene symbols are correct for ", org_info$nombre
     )
   }
 
-  # Contar genes mapeados y posibles Steiner
-  genes_encontrados <- unique(c(network$preferredName_A, network$preferredName_B))
-  genes_steiner     <- setdiff(genes_encontrados, genes)
-  message("  ", length(intersect(genes_encontrados, genes)), "/", length(genes),
-          " genes mapeados en STRING")
-  message("  ", length(genes_steiner), " posibles Steiner nodes disponibles")
+  # Count mapped genes and potential Steiner nodes
+  genes_found  <- unique(c(network$preferredName_A, network$preferredName_B))
+  steiner_candidates <- setdiff(genes_found, genes)
+  message("  ", length(intersect(genes_found, genes)), "/", length(genes),
+          " genes mapped in STRING")
+  message("  ", length(steiner_candidates), " potential Steiner nodes available")
 
-  # Convertir a formato iPCSF: from, to, cost
+  # Convert to iPCSF format: from, to, cost
+  # cost = 1 - (combined_score / 1000)
+  # Score 1000 -> cost 0.0 (very reliable, PCSF prefers it)
+  # Score 700  -> cost 0.3 (high confidence)
+  # Score 400  -> cost 0.6 (medium confidence, default threshold)
   interactome <- data.frame(
     from = network$preferredName_A,
     to   = network$preferredName_B,
@@ -98,13 +133,13 @@ get_string_interactome <- function(genes,
   )
 
   interactome <- interactome[complete.cases(interactome), ]
-  message("  Interactoma listo: ", nrow(interactome), " interacciones")
+  message("  Interactome ready: ", nrow(interactome), " interactions")
 
-  # Guardar cache
+  # Save cache
   if (!is.null(cache_dir)) {
     dir.create(cache_dir, showWarnings = FALSE, recursive = TRUE)
     saveRDS(interactome, cache_file)
-    message("  Cache guardado en: ", cache_file)
+    message("  Cache saved: ", cache_file)
   }
 
   return(interactome)
