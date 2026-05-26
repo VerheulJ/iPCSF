@@ -15,7 +15,7 @@ iPCSF is an R package that extends the original [PCSF](https://bioconductor.org/
 
 | Feature | PCSF (original) | **iPCSF** |
 |---|---|---|
-| Interactome | Manual download required | **Automatic via STRING API** |
+| Interactome | old version only for human | **Automatic via STRING API** |
 | Organisms supported | Human (limited) | **20+ organisms** |
 | Visualization | Static | **Interactive HTML with clusters** |
 | Enrichment | Basic | **GO (BP/MF/CC) + KEGG per cluster** |
