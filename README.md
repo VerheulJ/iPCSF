@@ -48,21 +48,25 @@ installed automatically on first use — you don't need to install them manually
 ## Quick start
 
 ## How it works
+## How it works
 
+```
 iPCSF()
-│
-├─ get_string_interactome()   # Query STRING API → from/to/cost table
-│
-├─ construir_red()            # PCSF algorithm → igraph subnet
-│    ├─ terminals  = |−log10(p)|
-│    └─ clustering = edge betweenness
-│
-├─ aplicar_enriquecimiento()  # GO + KEGG per cluster
-│    ├─ enrichGO()  (BP, MF, CC)
-│    └─ enrichKEGG()
-│
-└─ generar_html()             # Self-contained interactive HTML
-
+  |
+  |- get_string_interactome()     # Download full STRING interactome (cached)
+  |
+  |- calcular_parametros()        # Auto-calculate w, b, mu if not provided
+  |
+  |- construir_red()              # PCSF algorithm -> igraph subnet
+  |    |- terminals  = |-log10(p)|
+  |    |- clustering = edge betweenness
+  |
+  |- aplicar_enriquecimiento()    # GO + KEGG per cluster
+  |    |- enrichGO()  (BP, MF, CC)
+  |    |- enrichKEGG()
+  |
+  |- generar_html()               # Self-contained interactive HTML
+```
 ---
 ### Minimum example
 
