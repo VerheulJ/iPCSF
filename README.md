@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # iPCSF <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 > Improved Prize-Collecting Steiner Forest with automatic interactome and modern network visualization
