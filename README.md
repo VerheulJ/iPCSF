@@ -5,7 +5,7 @@
 
 [![R](https://img.shields.io/badge/R-%3E%3D4.0-blue)](https://cran.r-project.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Bioconductor](https://img.shields.io/badge/Bioconductor-supported-green)](https://bioconductor.org/)
+
 
 ---
 
@@ -47,6 +47,23 @@ installed automatically on first use — you don't need to install them manually
 
 ## Quick start
 
+## How it works
+
+iPCSF()
+│
+├─ get_string_interactome()   # Query STRING API → from/to/cost table
+│
+├─ construir_red()            # PCSF algorithm → igraph subnet
+│    ├─ terminals  = |−log10(p)|
+│    └─ clustering = edge betweenness
+│
+├─ aplicar_enriquecimiento()  # GO + KEGG per cluster
+│    ├─ enrichGO()  (BP, MF, CC)
+│    └─ enrichKEGG()
+│
+└─ generar_html()             # Self-contained interactive HTML
+
+---
 ### Minimum example
 
 ```r
@@ -106,9 +123,7 @@ iPCSF(
 | Gene symbols | HGNC/MGI gene names | `Gene.Symbol`, `gene`, `symbol` |
 | log2 fold-change | Numeric | `log2FC`, `log2cociente` |
 | −log10(p-value) | Numeric, positive | `neg_log10_pval`, `log10pvalor` |
-| Status *(optional)* | `"up-regulated"` / `"down-regulated"` | `Status` |
 
-> If `Status` column is absent, iPCSF infers it from the sign of `log2FC`.
 
 ---
 
@@ -169,23 +184,6 @@ iPCSF generates a self-contained **interactive HTML file** that includes:
 
 ---
 
-## How it works
-
-iPCSF()
-│
-├─ get_string_interactome()   # Query STRING API → from/to/cost table
-│
-├─ construir_red()            # PCSF algorithm → igraph subnet
-│    ├─ terminals  = |−log10(p)|
-│    └─ clustering = edge betweenness
-│
-├─ aplicar_enriquecimiento()  # GO + KEGG per cluster
-│    ├─ enrichGO()  (BP, MF, CC)
-│    └─ enrichKEGG()
-│
-└─ generar_html()             # Self-contained interactive HTML
-
----
 
 ## Citation
 
