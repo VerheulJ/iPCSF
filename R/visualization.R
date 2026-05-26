@@ -3,7 +3,7 @@
 # ============================================
 
 #' Genera paleta de colores para los clusters
-#' @keywords internal
+#' @noRd
 generar_paleta_clusters <- function(n_clusters) {
   colores_base <- c(
     "#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00",
@@ -16,7 +16,7 @@ generar_paleta_clusters <- function(n_clusters) {
 }
 
 #' Prepara los datos de una condicion para JSON
-#' @keywords internal
+#' @noRd
 preparar_datos_condicion <- function(resultado) {
 
   subnet        <- resultado$subnet

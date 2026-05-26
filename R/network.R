@@ -16,7 +16,7 @@
 #' @param mu Parametro mu de PCSF. Default 0.00005.
 #'
 #' @return Lista con \code{subnet}, \code{cluster_means}, \code{gene_scores}.
-#' @keywords internal
+#' @noRd
 construir_red <- function(desregulated_list,
                           org_info,
                           gene_col,

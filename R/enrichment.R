@@ -3,7 +3,7 @@
 # ============================================
 
 #' Carga el OrgDb del organismo, instalandolo si es necesario
-#' @keywords internal
+#' @noRd
 cargar_orgdb <- function(org_info) {
   pkg <- org_info$orgdb
   if (!requireNamespace(pkg, quietly = TRUE)) {
@@ -14,7 +14,7 @@ cargar_orgdb <- function(org_info) {
 }
 
 #' Enriquecimiento KEGG para un cluster
-#' @keywords internal
+#' @noRd
 get_kegg_summary <- function(genes, org_info, top_n = 3) {
   if (length(genes) < 3) return("Cluster pequeno para KEGG")
 
@@ -46,7 +46,7 @@ get_kegg_summary <- function(genes, org_info, top_n = 3) {
 }
 
 #' Enriquecimiento GO para un cluster
-#' @keywords internal
+#' @noRd
 get_go_summary <- function(genes, org_info, top_n = 2) {
   if (length(genes) < 3) return("Cluster pequeno para GO")
 
@@ -78,7 +78,7 @@ get_go_summary <- function(genes, org_info, top_n = 2) {
 }
 
 #' Aplica enriquecimiento a todos los clusters de una subred
-#' @keywords internal
+#' @noRd
 aplicar_enriquecimiento <- function(resultado, org_info) {
   if (is.null(resultado)) return(NULL)
 
