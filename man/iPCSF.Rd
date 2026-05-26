@@ -76,8 +76,6 @@ iPCSF(conditions = 2, org = "rat")
 }
 \examples{
 \dontrun{
-# Interactive mode -- iPCSF asks for data of each condition
-iPCSF(conditions = 2, org = "rat", gene_col = "Gene.Symbol")
 
 # One condition, automatic parameters
 iPCSF(
