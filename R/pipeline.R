@@ -86,9 +86,6 @@ recopilar_condiciones <- function(n) {
 #' )
 #' }
 #'
-#' \strong{2. Interactive mode} -- iPCSF asks for everything:
-#' \preformatted{
-#' iPCSF(conditions = 2, org = "rat")
 #' }
 #'
 #' @param conditions Named list of conditions, or an integer N to collect
