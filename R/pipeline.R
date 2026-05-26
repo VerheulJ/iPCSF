@@ -1,5 +1,5 @@
 # ============================================
-# FUNCIoN PRINCIPAL iPCSF
+# MAIN FUNCTION iPCSF
 # ============================================
 
 # Null-coalesce operator (internal)
@@ -7,59 +7,59 @@
 
 #' @importFrom grDevices rainbow
 #' @importFrom stats complete.cases na.omit setNames sd
-#' @importFrom utils head readline
+#' @importFrom utils head
 NULL
 
-#' Calcula parametros optimos w, b, mu a partir de los datos
-#' @keywords internal
+#' Calculate optimal PCSF parameters w, b, mu from data
+#' @noRd
 calcular_parametros <- function(terminals, interactome) {
-  prize_medio     <- mean(abs(terminals), na.rm = TRUE)
-  n_terminals     <- length(terminals)
-  n_genes_total   <- length(unique(c(interactome$from, interactome$to)))
-  n_interacciones <- nrow(interactome)
-  grado_medio     <- (2 * n_interacciones) / n_genes_total
+  prize_mean   <- mean(abs(terminals), na.rm = TRUE)
+  n_terminals  <- length(terminals)
+  n_genes      <- length(unique(c(interactome$from, interactome$to)))
+  n_edges      <- nrow(interactome)
+  mean_degree  <- (2 * n_edges) / n_genes
 
   w_opt  <- round(sqrt(n_terminals) * 0.4, 2)
   b_opt  <- 1
-  mu_opt <- round(prize_medio / (grado_medio * 100), 5)
+  mu_opt <- round(prize_mean / (mean_degree * 100), 5)
 
-  message("  Parametros calculados automaticamente:")
+  message("  Parameters calculated automatically:")
   message("    w  = ", w_opt,  " (sqrt(", n_terminals, ") * 0.4)")
   message("    b  = ", b_opt)
-  message("    mu = ", mu_opt, " (prize_medio / (grado_medio * 100))")
+  message("    mu = ", mu_opt, " (prize_mean / (mean_degree * 100))")
 
   list(w = w_opt, b = b_opt, mu = mu_opt)
 }
 
-#' Recopila interactivamente los datos de N condiciones
-#' @keywords internal
+#' Collect condition data interactively
+#' @noRd
 recopilar_condiciones <- function(n) {
-  conditions <- list()
-  colores_default <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
-                       "#FF7F00", "#A65628", "#F781BF", "#999999")
+  conditions      <- list()
+  default_colors  <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+                        "#FF7F00", "#A65628", "#F781BF", "#999999")
 
   for (i in seq_len(n)) {
-    cat(sprintf("\n--- Condicion %d de %d ---\n", i, n))
+    cat(sprintf("\n--- Condition %d of %d ---\n", i, n))
 
-    id    <- readline(prompt = "  ID corto (ej: females): ")
-    label <- readline(prompt = "  Etiqueta HTML (ej: Females): ")
+    id    <- readline(prompt = "  Short ID (e.g. females): ")
+    label <- readline(prompt = "  HTML label (e.g. Females): ")
 
-    color_default <- colores_default[((i - 1) %% length(colores_default)) + 1]
-    color_input   <- readline(prompt = sprintf("  Color hex [default: %s]: ", color_default))
+    color_default <- default_colors[((i - 1) %% length(default_colors)) + 1]
+    color_input   <- readline(prompt = sprintf("  Hex color [default: %s]: ", color_default))
     color         <- if (nchar(trimws(color_input)) == 0) color_default else trimws(color_input)
 
-    ruta <- readline(prompt = "  Ruta al archivo .xlsx: ")
-    while (!file.exists(ruta)) {
-      cat("  Archivo no encontrado. Intenta de nuevo.\n")
-      ruta <- readline(prompt = "  Ruta al archivo .xlsx: ")
+    path <- readline(prompt = "  Path to .xlsx file: ")
+    while (!file.exists(path)) {
+      cat("  File not found. Please try again.\n")
+      path <- readline(prompt = "  Path to .xlsx file: ")
     }
 
-    df        <- readxl::read_xlsx(ruta)
-    cat("  Columnas disponibles:", paste(colnames(df), collapse = ", "), "\n")
+    df <- readxl::read_xlsx(path)
+    cat("  Available columns:", paste(colnames(df), collapse = ", "), "\n")
 
-    gene_col   <- readline(prompt = "  Columna de genes (ej: Gene.Symbol): ")
-    log2fc_col <- readline(prompt = "  Columna log2FC: ")
-    pval_col   <- readline(prompt = "  Columna pvalor (-log10): ")
+    gene_col   <- readline(prompt = "  Gene column (e.g. Gene.Symbol): ")
+    log2fc_col <- readline(prompt = "  log2FC column: ")
+    pval_col   <- readline(prompt = "  p-value column (-log10): ")
 
     conditions[[id]] <- list(
       data       = df,
@@ -73,17 +73,33 @@ recopilar_condiciones <- function(n) {
   return(conditions)
 }
 
-#' Analisis PCSF completo con interactoma automatico
+#' Run a complete PCSF analysis with automatic interactome download
 #'
-#' @param conditions Lista nombrada de condiciones, o un entero N para
-#'   recopilar N condiciones interactivamente. Cada elemento de la lista debe contener:
+#' @details
+#' Two ways to use iPCSF:
+#'
+#' \strong{1. List mode} -- pass your data directly:
+#' \preformatted{
+#' iPCSF(
+#'   conditions = list(case1 = list(data = df, label = "Case 1")),
+#'   org = "rat", gene_col = "Gene.Symbol"
+#' )
+#' }
+#'
+#' \strong{2. Interactive mode} -- iPCSF asks for everything:
+#' \preformatted{
+#' iPCSF(conditions = 2, org = "rat")
+#' }
+#'
+#' @param conditions Named list of conditions, or an integer N to collect
+#'   N conditions interactively. Each list element must contain:
 #'   \itemize{
-#'     \item \code{data} Data.frame con los genes desregulados (obligatorio)
-#'     \item \code{label} Etiqueta para mostrar en el HTML (opcional)
-#'     \item \code{color} Color hex para la condicion (opcional)
-#'     \item \code{gene_col} Columna de genes (opcional, sobreescribe el global)
-#'     \item \code{log2fc_col} Columna log2FC (opcional, sobreescribe el global)
-#'     \item \code{pval_col} Columna pvalor (opcional, sobreescribe el global)
+#'     \item \code{data} Data.frame with desregulated genes (required)
+#'     \item \code{label} Label shown in the HTML (optional)
+#'     \item \code{color} Hex color for the condition (optional)
+#'     \item \code{gene_col} Gene column for this condition (optional, overrides global)
+#'     \item \code{log2fc_col} log2FC column for this condition (optional, overrides global)
+#'     \item \code{pval_col} p-value column for this condition (optional, overrides global)
 #'   }
 #' @param org Organism code. One of: "human", "mouse", "rat", "bovine", "canine",
 #'   "pig", "rhesus", "chimp", "chicken", "xenopus", "zebrafish", "fly", "worm",
@@ -117,7 +133,7 @@ recopilar_condiciones <- function(n) {
 #'   pval_col   = "log10pvalor_alcohol"
 #' )
 #'
-#' # Two conditions with different columns, manual parameters
+#' # Two conditions with different column names per condition
 #' iPCSF(
 #'   conditions = list(
 #'     females = list(data = df_f, label = "Females", color = "#E41A1C",
@@ -153,10 +169,10 @@ iPCSF <- function(conditions,
     )
   }
 
-  # Si conditions es un entero, modo interactivo
+  # Interactive mode if conditions is an integer
   if (is.numeric(conditions) && length(conditions) == 1) {
     n <- as.integer(conditions)
-    cat(sprintf("\n[iPCSF] Modo interactivo: %d condicion(es)\n", n))
+    cat(sprintf("\n[iPCSF] Interactive mode: %d condition(s)\n", n))
     conditions <- recopilar_condiciones(n)
   }
 
@@ -175,7 +191,7 @@ iPCSF <- function(conditions,
   message("  iPCSF -- ", org_info$nombre)
   message("  ", length(conditions), " condition(s): ",
           paste(names(conditions), collapse = ", "))
-  if (is.null(w)) message("  w, b, mu: calculados automaticamente")
+  if (is.null(w)) message("  w, b, mu: calculated automatically")
   else            message("  w=", w, " b=", b, " mu=", mu)
   message("========================================\n")
 
@@ -186,10 +202,12 @@ iPCSF <- function(conditions,
 
     message("[", cond_id, "] Processing...")
 
+    # Validate data field
     if (is.null(cond$data) || !is.data.frame(cond$data)) {
       stop("Condition '", cond_id, "': field 'data' must be a data.frame.")
     }
 
+    # Use per-condition columns if provided, otherwise use globals
     cond_gene_col   <- cond$gene_col   %||% gene_col
     cond_log2fc_col <- cond$log2fc_col %||% log2fc_col
     cond_pval_col   <- cond$pval_col   %||% pval_col
@@ -198,6 +216,7 @@ iPCSF <- function(conditions,
     message("  log2fc_col : ", cond_log2fc_col)
     message("  pval_col   : ", cond_pval_col)
 
+    # Validate columns
     for (col in c(cond_gene_col, cond_log2fc_col, cond_pval_col)) {
       if (!col %in% colnames(cond$data)) {
         stop(
@@ -207,20 +226,20 @@ iPCSF <- function(conditions,
       }
     }
 
-    # Obtener interactoma para calcular parametros si son NULL
+    # Get organism key
     org_key <- names(ORGANISMS)[
       sapply(ORGANISMS, function(x) identical(x$taxid, org_info$taxid))
     ]
     genes_cond <- as.character(cond$data[[cond_gene_col]])
     genes_cond <- genes_cond[!is.na(genes_cond) & genes_cond != ""]
 
-    # Calcular parametros automaticamente si no se especifican
+    # Auto-calculate parameters if not provided
     w_use  <- w
     b_use  <- b
     mu_use <- mu
 
     if (is.null(w) || is.null(b) || is.null(mu)) {
-      message("  Descargando interactoma para calcular parametros...")
+      message("  Downloading interactome to calculate parameters...")
       interactome_tmp <- tryCatch(
         get_string_interactome(
           genes           = genes_cond,
@@ -246,7 +265,7 @@ iPCSF <- function(conditions,
         w_use  <- w  %||% 2
         b_use  <- b  %||% 1
         mu_use <- mu %||% 0.0005
-        message("  No se pudo calcular parametros, usando defaults: w=", w_use,
+        message("  Could not calculate parameters, using defaults: w=", w_use,
                 " b=", b_use, " mu=", mu_use)
       }
     }
@@ -275,9 +294,11 @@ iPCSF <- function(conditions,
       next
     }
 
+    # Condition metadata
     res$label <- cond$label %||% cond_id
     res$color <- cond$color %||% "#377EB8"
 
+    # Functional enrichment
     message("[", cond_id, "] Running functional enrichment...")
     res <- tryCatch(
       aplicar_enriquecimiento(res, org_info),
@@ -294,11 +315,13 @@ iPCSF <- function(conditions,
             length(unique(igraph::V(res$subnet)$cluster)), " clusters\n")
   }
 
+  # Check at least one condition succeeded
   validos <- Filter(Negate(is.null), resultados)
   if (length(validos) == 0) {
     stop("No conditions produced results. Check your input data.")
   }
 
+  # Generate HTML
   message("[iPCSF] Generating HTML visualization...")
   generar_html(
     resultados  = resultados,
