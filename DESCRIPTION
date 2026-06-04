@@ -47,6 +47,6 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
-URL: https://github.com/juliaverheul/iPCSF
-BugReports: https://github.com/juliaverheul/iPCSF/issues
+URL: https://github.com/VerheulJ/iPCSF
+BugReports: https://github.com/VerheulJ/iPCSF/issues
 Config/roxygen2/version: 8.0.0
