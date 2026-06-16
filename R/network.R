@@ -136,7 +136,7 @@ construir_red <- function(desregulated_list,
 
   # ── 8. Clustering ─────────────────────────────────────────────────
   message("  Clustering...")
-  clusters                  <- igraph::cluster_edge_betweenness(subnet)
+clusters <- igraph::cluster_louvain(subnet)
   igraph::V(subnet)$cluster <- clusters$membership
 
   genes_by_cluster <- split(igraph::V(subnet)$name, clusters$membership)
