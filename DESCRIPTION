@@ -19,8 +19,7 @@ Imports:
     httr,
     clusterProfiler,
     AnnotationDbi,
-    BiocManager,
-    Rcpp
+    BiocManager
 LinkingTo: Rcpp, BH
 Suggests:
     org.Hs.eg.db,
