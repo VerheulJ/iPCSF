@@ -66,7 +66,7 @@ iPCSF()
   |
   |- generar_html()               # Self-contained interactive HTML
 ```
----
+***
 ### Minimum example
 
 ```r
