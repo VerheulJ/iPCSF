@@ -70,7 +70,7 @@ pcsf_algorithm <- function(ppi, terminals, w = 2, b = 1, mu = 0.0005) {
   to    <- c(dummies, edges[,2])
   cost  <- c(rep(w, length(dummies)), igraph::E(ppi)$weight)
 
-  output <- PCSF::call_sr(from, to, cost, node_names, node_prizes)
+  output <- call_sr(from, to, cost, node_names, node_prizes)
 
   if (length(output[[1]]) == 0)
     stop("No subnetwork identified. Try adjusting w, b, or mu parameters.")
