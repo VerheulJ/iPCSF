@@ -118,6 +118,7 @@ preparar_datos_condicion <- function(resultado) {
 #' @param titulo Titulo que aparece en el header del HTML.
 #'
 #' @noRd
+#' @noRd
 generar_html <- function(resultados,
                          output_file = "iPCSF_network.html",
                          titulo      = "iPCSF Network") {

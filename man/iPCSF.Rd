@@ -66,12 +66,11 @@ Two ways to use iPCSF:
 iPCSF(
   conditions = list(case1 = list(data = df, label = "Case 1")),
   org = "rat", gene_col = "Gene.Symbol"
-69  )}
-70  }
-71  }
-72  \examples{
+)
+}
+}
+\examples{
 \dontrun{
-
 # One condition, automatic parameters
 iPCSF(
   conditions = list(
