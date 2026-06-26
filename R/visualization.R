@@ -112,7 +112,6 @@ preparar_datos_condicion <- function(resultado) {
 
 #' Genera el HTML interactivo con la red iPCSF
 #'
-#' @param resultados Lista nombrada de resultados (una entrada por condicion).
 #'   Cada elemento debe ser la salida de \code{construir_red()} + \code{aplicar_enriquecimiento()},
 #'   con campos adicionales \code{label} y \code{color}.
 #' @param output_file Ruta del archivo HTML de salida.
