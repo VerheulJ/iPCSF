@@ -118,7 +118,6 @@ preparar_datos_condicion <- function(resultado) {
 #' @param output_file Ruta del archivo HTML de salida.
 #' @param titulo Titulo que aparece en el header del HTML.
 #'
-#' @return Ruta del archivo HTML generado (invisible).
 #' @noRd
 generar_html <- function(resultados,
                          output_file = "iPCSF_network.html",
