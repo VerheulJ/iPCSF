@@ -16,7 +16,6 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 biocViews: NetworkAnalysis, Proteomics, GeneOntology, KEGG, MultipleComparison
 Imports:
-    PCSF,
     igraph,
     jsonlite,
     httr,
