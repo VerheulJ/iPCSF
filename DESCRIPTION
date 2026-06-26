@@ -3,25 +3,25 @@ Title: Improved Prize-Collecting Steiner Forest with Modern Network Visualizatio
 Version: 0.0.1
 Authors@R: person("Julia", "Verheul-Campos",
     email = "verheuljulia@gmail.com",
-    role = c("aut", "cre"),
-    comment = c(ORCID = ""))
-Description: An enhanced implementation of the Prize-Collecting Steiner Forest 
-    (PCSF) algorithm for biological network analysis. Automatically downloads 
-    protein interaction networks from the STRING database for any supported 
-    organism, performs functional enrichment analysis (GO and KEGG), and 
-    generates modern interactive HTML network visualizations with cluster 
+    role = c("aut", "cre"))
+Description: An enhanced implementation of the Prize-Collecting Steiner Forest
+    (PCSF) algorithm for biological network analysis. Automatically downloads
+    protein interaction networks from the STRING database for any supported
+    organism, performs functional enrichment analysis (GO and KEGG), and
+    generates modern interactive HTML network visualizations with cluster
     annotation.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-biocViews: NetworkAnalysis, Proteomics, GeneOntology, KEGG, MultipleComparison
 Imports:
     igraph,
     jsonlite,
     httr,
     clusterProfiler,
     AnnotationDbi,
-    BiocManager
+    BiocManager,
+    Rcpp
+LinkingTo: Rcpp, BH
 Suggests:
     org.Hs.eg.db,
     org.Mm.eg.db,
