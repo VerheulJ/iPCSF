@@ -7,6 +7,8 @@
 #' Downloads the complete protein interaction network from the STRING database,
 #' filters by confidence score and returns only interactions involving
 #' the input genes or their neighbors (potential Steiner nodes).
+#' The full interactome is cached to disk on first use — subsequent calls
+#' load from cache instantly regardless of which genes are passed.
 #'
 #' @param genes Character vector of Gene Symbols.
 #' @param org Organism code. One of: "human", "mouse", "rat", "bovine", "canine",
@@ -20,6 +22,8 @@
 #'     \item 150-400: low confidence
 #'   }
 #' @param cache_dir Folder to cache the downloaded interactome. \code{NULL} = no cache.
+#'   On first run downloads the full organism interactome (~75MB for rat).
+#'   Subsequent runs load from cache instantly.
 #'
 #' @return Data.frame with three columns:
 #'   \itemize{
@@ -37,7 +41,8 @@
 #' interactome <- get_string_interactome(
 #'   genes           = genes,
 #'   org             = "rat",
-#'   score_threshold = 400
+#'   score_threshold = 400,
+#'   cache_dir       = "~/.iPCSF_cache"
 #' )
 #' head(interactome)
 #' }
@@ -51,96 +56,113 @@ get_string_interactome <- function(genes,
          paste(names(ORGANISMS), collapse = ", "))
   }
 
-  # Cache
+  # ── Cache: full interactome (not filtered by genes) ──────────────
+  # Key includes org and score_threshold but NOT genes --
+  # this ensures the same full interactome is reused for all conditions
+  full_interactome <- NULL
+  cache_file <- NULL
+
   if (!is.null(cache_dir)) {
+    dir.create(cache_dir, showWarnings = FALSE, recursive = TRUE)
     cache_file <- file.path(cache_dir,
-                            paste0("STRING_", org, "_", score_threshold, ".rds"))
+                            paste0("STRING_", org, "_", score_threshold, "_FULL.rds"))
     if (file.exists(cache_file)) {
       message("Loading interactome from cache: ", cache_file)
-      return(readRDS(cache_file))
+      full_interactome <- readRDS(cache_file)
     }
   }
 
-  message("Querying STRING API for ", org_info$nombre, "...")
+  # ── Download full interactome if not cached ───────────────────────
+  if (is.null(full_interactome)) {
+    message("Downloading STRING interactome for ", org_info$nombre, "...")
+    message("(this may take a few minutes on first run)")
 
-  # 1. Interactions between input genes
-  resp_network <- httr::POST(
-    "https://string-db.org/api/json/network",
-    body = list(
-      identifiers     = paste(genes, collapse = "%0d"),
-      species         = as.character(org_info$taxid),
-      required_score  = as.character(score_threshold),
-      network_type    = "functional",
-      caller_identity = "iPCSF"
-    ),
-    encode = "form"
-  )
-  httr::stop_for_status(resp_network)
-  network <- jsonlite::fromJSON(
-    httr::content(resp_network, "text", encoding = "UTF-8")
-  )
+    url_links <- paste0(
+      "https://stringdb-downloads.org/download/protein.links.v12.0/",
+      org_info$taxid, ".protein.links.v12.0.txt.gz"
+    )
+    url_info <- paste0(
+      "https://stringdb-downloads.org/download/protein.info.v12.0/",
+      org_info$taxid, ".protein.info.v12.0.txt.gz"
+    )
 
-  # 2. External neighbors (potential Steiner nodes)
-  resp_partners <- httr::POST(
-    "https://string-db.org/api/json/interaction_partners",
-    body = list(
-      identifiers     = paste(genes, collapse = "%0d"),
-      species         = as.character(org_info$taxid),
-      required_score  = as.character(score_threshold),
-      limit           = "5",
-      caller_identity = "iPCSF"
-    ),
-    encode = "form"
-  )
-  httr::stop_for_status(resp_partners)
-  partners <- jsonlite::fromJSON(
-    httr::content(resp_partners, "text", encoding = "UTF-8")
-  )
+    tmp_links <- tempfile(fileext = ".txt.gz")
+    tmp_info  <- tempfile(fileext = ".txt.gz")
 
-  # 3. Combine both networks
-  if (!is.null(partners) && length(partners) > 0 && nrow(partners) > 0) {
-    network <- rbind(network, partners)
-    network <- network[!duplicated(paste(network$preferredName_A,
-                                         network$preferredName_B)), ]
+    tryCatch({
+      download.file(url_links, tmp_links, mode = "wb", quiet = FALSE)
+      download.file(url_info,  tmp_info,  mode = "wb", quiet = FALSE)
+    }, error = function(e) {
+      stop("Error downloading STRING: ", e$message,
+           "\nCheck your internet connection.")
+    })
+
+    message("Processing interactome...")
+
+    links <- data.table::fread(tmp_links, sep = " ",  data.table = FALSE)
+    info  <- data.table::fread(tmp_info,  sep = "\t", data.table = FALSE, quote = "")
+
+    # Filter by score threshold
+    links <- links[links$combined_score >= score_threshold, ]
+
+    # Remove taxid prefix from IDs
+    prefix        <- paste0(org_info$taxid, ".")
+    info$clean_id <- sub(paste0("^", prefix), "", info[,1])
+    links$clean1  <- sub(paste0("^", prefix), "", links$protein1)
+    links$clean2  <- sub(paste0("^", prefix), "", links$protein2)
+
+    # Map protein IDs to gene symbols
+    id_to_symbol <- setNames(info$preferred_name, info$clean_id)
+    links$gene1  <- id_to_symbol[links$clean1]
+    links$gene2  <- id_to_symbol[links$clean2]
+
+    # Build full interactome
+    # cost = 1 - (combined_score / 1000)
+    # Score 1000 -> cost 0.0 (very reliable, PCSF prefers it)
+    # Score 700  -> cost 0.3 (high confidence)
+    # Score 400  -> cost 0.6 (medium confidence, default threshold)
+    full_interactome <- data.frame(
+      from = links$gene1,
+      to   = links$gene2,
+      cost = 1 - (links$combined_score / 1000),
+      stringsAsFactors = FALSE
+    )
+    full_interactome <- full_interactome[complete.cases(full_interactome), ]
+
+    message("  Full interactome: ", nrow(full_interactome), " interactions")
+
+    # Save full interactome to cache
+    if (!is.null(cache_file)) {
+      saveRDS(full_interactome, cache_file)
+      message("  Cache saved: ", cache_file)
+    }
+
+    unlink(tmp_links)
+    unlink(tmp_info)
   }
 
-  if (is.null(network) || length(network) == 0 || nrow(network) == 0) {
+  # ── Filter by input genes + their neighbors ───────────────────────
+  # Keep interactions where at least one end is a terminal gene
+  # The other end becomes a potential Steiner node
+  idx      <- full_interactome$from %in% genes | full_interactome$to %in% genes
+  filtered <- full_interactome[idx, ]
+
+  if (nrow(filtered) == 0) {
     stop(
-      "STRING returned no interactions.\n",
+      "No interactions found for the input genes.\n",
       "Suggestions:\n",
       "  - Try lowering score_threshold (current: ", score_threshold, ")\n",
       "  - Verify that gene symbols are correct for ", org_info$nombre
     )
   }
 
-  # Count mapped genes and potential Steiner nodes
-  genes_found  <- unique(c(network$preferredName_A, network$preferredName_B))
+  genes_found        <- unique(c(filtered$from, filtered$to))
   steiner_candidates <- setdiff(genes_found, genes)
+
   message("  ", length(intersect(genes_found, genes)), "/", length(genes),
           " genes mapped in STRING")
   message("  ", length(steiner_candidates), " potential Steiner nodes available")
+  message("  Interactome ready: ", nrow(filtered), " interactions")
 
-  # Convert to iPCSF format: from, to, cost
-  # cost = 1 - (combined_score / 1000)
-  # Score 1000 -> cost 0.0 (very reliable, PCSF prefers it)
-  # Score 700  -> cost 0.3 (high confidence)
-  # Score 400  -> cost 0.6 (medium confidence, default threshold)
-  interactome <- data.frame(
-    from = network$preferredName_A,
-    to   = network$preferredName_B,
-    cost = 1 - (network$score / 1000),
-    stringsAsFactors = FALSE
-  )
-
-  interactome <- interactome[complete.cases(interactome), ]
-  message("  Interactome ready: ", nrow(interactome), " interactions")
-
-  # Save cache
-  if (!is.null(cache_dir)) {
-    dir.create(cache_dir, showWarnings = FALSE, recursive = TRUE)
-    saveRDS(interactome, cache_file)
-    message("  Cache saved: ", cache_file)
-  }
-
-  return(interactome)
+  return(filtered)
 }
