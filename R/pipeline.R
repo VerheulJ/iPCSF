@@ -112,6 +112,7 @@ recopilar_condiciones <- function(n) {
 #' @param mu PCSF mu parameter. \code{NULL} = calculated automatically from data.
 #'
 #' @return Invisible list with \code{resultados}, \code{html} and \code{org}.
+#' @export
 #' @examples
 #' \donttest{
 #' # One condition
