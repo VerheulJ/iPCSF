@@ -26,7 +26,9 @@ get_string_interactome(
 \item 150-400: low confidence
 }}
 
-\item{cache_dir}{Folder to cache the downloaded interactome. \code{NULL} = no cache.}
+\item{cache_dir}{Folder to cache the downloaded interactome. \code{NULL} = no cache.
+On first run downloads the full organism interactome (~75MB for rat).
+Subsequent runs load from cache instantly.}
 }
 \value{
 Data.frame with three columns:
@@ -42,14 +44,17 @@ With default threshold 400, cost ranges from 0.0 to 0.6.
 Downloads the complete protein interaction network from the STRING database,
 filters by confidence score and returns only interactions involving
 the input genes or their neighbors (potential Steiner nodes).
+The full interactome is cached to disk on first use — subsequent calls
+load from cache instantly regardless of which genes are passed.
 }
 \examples{
-\dontrun{
+\donttest{
 genes <- c("Actb", "Tp53", "Mapk1", "Akt1")
 interactome <- get_string_interactome(
   genes           = genes,
   org             = "rat",
-  score_threshold = 400
+  score_threshold = 400,
+  cache_dir       = tempdir()
 )
 head(interactome)
 }

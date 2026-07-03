@@ -70,16 +70,18 @@ iPCSF(
 }
 }
 \examples{
-\dontrun{
-# One condition, automatic parameters
+\donttest{
+# One condition
 iPCSF(
   conditions = list(
     alcohol = list(data = df, label = "Alcohol", color = "#E41A1C")
   ),
-  org        = "rat",
-  gene_col   = "Gene.Symbol",
-  log2fc_col = "log2cociente_alcohol",
-  pval_col   = "log10pvalor_alcohol"
+  org         = "rat",
+  gene_col    = "Gene.Symbol",
+  log2fc_col  = "log2cociente_alcohol",
+  pval_col    = "log10pvalor_alcohol",
+  cache_dir   = tempdir(),
+  output_file = file.path(tempdir(), "network.html")
 )
 
 # Two conditions with different column names per condition
@@ -92,9 +94,10 @@ iPCSF(
                    log2fc_col = "log2cociente_machos",
                    pval_col   = "log10pvalor_machos")
   ),
-  org      = "rat",
-  gene_col = "Gene.Symbol",
-  w = 5, b = 1, mu = 0.005
+  org         = "rat",
+  gene_col    = "Gene.Symbol",
+  cache_dir   = tempdir(),
+  output_file = file.path(tempdir(), "network.html")
 )
 }
 }
