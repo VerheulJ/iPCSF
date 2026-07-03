@@ -113,7 +113,7 @@ recopilar_condiciones <- function(n) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 
 #' # One condition, automatic parameters
 #' iPCSF(
