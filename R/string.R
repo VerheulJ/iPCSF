@@ -36,7 +36,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' genes <- c("Actb", "Tp53", "Mapk1", "Akt1")
 #' interactome <- get_string_interactome(
 #'   genes           = genes,
