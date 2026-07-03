@@ -28,7 +28,6 @@ preparar_datos_condicion <- function(resultado) {
   cluster_color_map <- setNames(paleta, as.character(clusters_unicos))
 
   # Layout
-  set.seed(42)
   layout_coords <- igraph::layout_with_fr(subnet, niter = 1000) * 5
   rango_x <- max(layout_coords[,1]) - min(layout_coords[,1]) + 0.001
   rango_y <- max(layout_coords[,2]) - min(layout_coords[,2]) + 0.001
