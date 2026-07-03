@@ -7,8 +7,10 @@
 cargar_orgdb <- function(org_info) {
   pkg <- org_info$orgdb
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    message("Instalando ", pkg, " desde Bioconductor...")
-    BiocManager::install(pkg, ask = FALSE, update = FALSE)
+    stop(
+      "Package '", pkg, "' is required but not installed.\n",
+      "Install it with: BiocManager::install('", pkg, "')"
+    )
   }
   return(get(pkg, envir = asNamespace(pkg)))
 }
