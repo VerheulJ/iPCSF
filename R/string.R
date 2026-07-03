@@ -42,7 +42,7 @@
 #'   genes           = genes,
 #'   org             = "rat",
 #'   score_threshold = 400,
-#'   cache_dir       = "~/.iPCSF_cache"
+#'   cache_dir       = tempdir()
 #' )
 #' head(interactome)
 #' }
