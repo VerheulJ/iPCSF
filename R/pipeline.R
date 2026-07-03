@@ -1,7 +1,9 @@
 # ============================================
 # MAIN FUNCTION iPCSF
 # ============================================
-
+#' @useDynLib iPCSF, .registration = TRUE
+#' @importFrom Rcpp sourceCpp
+NULL
 # Null-coalesce operator (internal)
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
