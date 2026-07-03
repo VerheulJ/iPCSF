@@ -6,10 +6,11 @@ Authors@R: person("Julia", "Verheul-Campos",
     role = c("aut", "cre"))
 Description: An enhanced implementation of the Prize-Collecting Steiner Forest
     (PCSF) algorithm for biological network analysis. Automatically downloads
-    protein interaction networks from the STRING database for any supported
-    organism, performs functional enrichment analysis (GO and KEGG), and
-    generates modern interactive HTML network visualizations with cluster
-    annotation.
+    protein interaction networks from the STRING database
+    <https://string-db.org> for any supported organism, performs functional
+    enrichment analysis using Gene Ontology (GO) and Kyoto Encyclopedia of
+    Genes and Genomes (KEGG) <https://www.kegg.jp>, and generates modern
+    interactive HTML network visualizations with cluster annotation.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -19,7 +20,8 @@ Imports:
     httr,
     clusterProfiler,
     AnnotationDbi,
-    BiocManager
+    BiocManager,
+    data.table
 LinkingTo: Rcpp, BH
 Suggests:
     org.Hs.eg.db,
